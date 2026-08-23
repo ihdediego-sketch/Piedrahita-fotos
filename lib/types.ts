@@ -4,6 +4,9 @@ export type PhotoStatus = "pending" | "published" | "rejected";
 export type Profile = {
   id: string;
   display_name: string;
+  bio: string;
+  /** Ruta dentro del bucket `avatars`, no una URL. */
+  avatar_path: string;
   role: Role;
   created_at: string;
 };
@@ -98,3 +101,11 @@ export const STATUS_LABELS: Record<PhotoStatus, string> = {
   published: "Publicada",
   rejected: "Rechazada",
 };
+  bio: string;
+  /** Ruta dentro del bucket `avatars`. Vacía si no ha puesto foto. */
+  avatarPath: string;
+  /** URL pública del avatar, ya resuelta. Vacía si no hay. */
+  avatar: string;
+/** Tope del texto «sobre mí», igual que el check de la base de datos. */
+export const BIO_MAX = 600;
+

@@ -6,6 +6,7 @@ export const TIMELINE_MIN = 1800;
 export const TIMELINE_MAX = new Date().getFullYear();
 
 export const PHOTO_BUCKET = "photos";
+export const AVATAR_BUCKET = "avatars";
 
 export const ACCEPTED_IMAGE_TYPES = [
   "image/jpeg",
@@ -17,15 +18,21 @@ export const ACCEPTED_IMAGE_TYPES = [
 
 export const ACCEPTED_IMAGE_EXT = ".jpg,.jpeg,.png,.webp,.avif,.gif";
 
-/** URL pública de un objeto del bucket de fotos. */
-export function imageUrl(path: string): string {
+/** URL pública de un objeto de un bucket de Storage. */
+export function publicUrl(bucket: string, path: string): string {
   if (!path) return "";
   // Las rutas ya absolutas (o de la carpeta public/) se dejan tal cual: así el
   // panel puede previsualizar una imagen antes de que exista en Storage.
   if (/^(https?:)?\/\//.test(path) || path.startsWith("/") || path.startsWith("blob:"))
     return path;
-  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${PHOTO_BUCKET}/${path}`;
+  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${bucket}/${path}`;
 }
+
+/** URL pública de un objeto del bucket de fotos. */
+export const imageUrl = (path: string) => publicUrl(PHOTO_BUCKET, path);
+
+/** URL pública de un avatar. */
+export const avatarUrl = (path: string) => publicUrl(AVATAR_BUCKET, path);
 
 /**
  * Fila de la base de datos → objeto de la interfaz.

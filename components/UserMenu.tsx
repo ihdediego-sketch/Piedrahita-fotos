@@ -46,13 +46,22 @@ export default function UserMenu({ viewer }: { viewer: Viewer }) {
         aria-expanded={open}
         aria-haspopup="menu"
       >
-        <User aria-hidden size={15} strokeWidth={1.7} />
+        {viewer.avatar ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img className="user-avatar" src={viewer.avatar} alt="" />
+        ) : (
+          <User aria-hidden size={15} strokeWidth={1.7} />
+        )}
         {viewer.displayName}
       </Button>
 
       {open && (
         <div className="user-dropdown" role="menu">
           <span className="user-role">{ROLE_LABELS[viewer.role]}</span>
+          <Link href="/perfil" role="menuitem" onClick={() => setOpen(false)}>
+            <User aria-hidden size={14} strokeWidth={1.7} />
+            Editar perfil
+          </Link>
           <Link href="/subir" role="menuitem" onClick={() => setOpen(false)}>
             <ImagePlus aria-hidden size={14} strokeWidth={1.7} />
             Enviar una fotografía

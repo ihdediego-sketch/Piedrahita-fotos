@@ -1,6 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
-import { toPhoto } from "@/lib/photos";
+import { avatarUrl, toPhoto } from "@/lib/photos";
 import type {
   Photo,
   PhotoStatus,
@@ -32,7 +32,7 @@ export async function getViewer(): Promise<Viewer> {
 
   const { data } = await supabase
     .from("profiles")
-    .select("id, display_name, role")
+    .select("id, display_name, bio, avatar_path, role")
     .eq("id", user.id)
     .single();
 
@@ -47,6 +47,9 @@ export async function getViewer(): Promise<Viewer> {
 
 export async function getSiteContent(): Promise<SiteContent> {
   const supabase = await createClient();
+    bio: data?.bio ?? "",
+    avatarPath: data?.avatar_path ?? "",
+    avatar: avatarUrl(data?.avatar_path ?? ""),
   const { data } = await supabase
     .from("site_content")
     .select("title, subtitle, meta_title, meta_description")
@@ -110,7 +113,7 @@ export async function getProfiles(): Promise<Profile[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("profiles")
-    .select("id, display_name, role, created_at")
+    .select("id, display_name, bio, avatar_path, role, created_at")
     .order("created_at", { ascending: true });
   return (data ?? []) as Profile[];
 }
