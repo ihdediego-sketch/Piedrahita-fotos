@@ -2,11 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
-import { photos, type Photo } from "@/lib/photos";
-import { site } from "@/lib/site";
+import { Plus, Minus, Crosshair } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { type Photo } from "@/lib/photos";
+import type { SiteContent, Viewer } from "@/lib/types";
 import { plaza, edificios } from "@/lib/lugares";
 import Timeline from "./Timeline";
 import PhotoModal from "./PhotoModal";
+import UserMenu from "./UserMenu";
 import { TIMELINE_MIN, TIMELINE_MAX } from "@/lib/photos";
 
 const PIEDRAHITA: [number, number] = [-5.3238, 40.4619];
@@ -192,7 +195,20 @@ function legsElement(n: number, r: number) {
   return el;
 }
 
-export default function MapView() {
+type MapViewProps = {
+  photos: Photo[];
+  site: SiteContent;
+  viewer: Viewer;
+  /** Fotos a las que el visitante ya dio me gusta, para pintar el corazón lleno. */
+  likedIds: string[];
+};
+
+export default function MapView({
+  photos,
+  site,
+  viewer,
+  likedIds,
+}: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markersRef = useRef<Map<string, maplibregl.Marker>>(new Map());
@@ -388,7 +404,7 @@ export default function MapView() {
         .addTo(map);
       markers.set(key, marker);
     }
-  }, [photoElement, clusterElement]);
+  }, [photos, photoElement, clusterElement]);
 
   renderRef.current = render;
 
@@ -439,24 +455,27 @@ export default function MapView() {
       <div className="map-root" ref={containerRef} />
 
       <div className="map-controls">
-        <button
+        <Button
           type="button"
+          variant="ghost"
           className="map-control"
           aria-label="Acercar"
           onClick={() => mapRef.current?.zoomIn()}
         >
-          <span aria-hidden>+</span>
-        </button>
-        <button
+          <Plus aria-hidden size={17} strokeWidth={1.8} />
+        </Button>
+        <Button
           type="button"
+          variant="ghost"
           className="map-control"
           aria-label="Alejar"
           onClick={() => mapRef.current?.zoomOut()}
         >
-          <span aria-hidden>−</span>
-        </button>
-        <button
+          <Minus aria-hidden size={17} strokeWidth={1.8} />
+        </Button>
+        <Button
           type="button"
+          variant="ghost"
           className="map-control map-control-center"
           aria-label="Centrar el mapa en Piedrahíta"
           onClick={() =>
@@ -467,17 +486,16 @@ export default function MapView() {
             })
           }
         >
-          <svg viewBox="0 0 24 24" aria-hidden focusable="false">
-            <circle cx="12" cy="12" r="4.5" />
-            <path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4" />
-          </svg>
-        </button>
+          <Crosshair aria-hidden size={17} strokeWidth={1.6} />
+        </Button>
       </div>
 
       <header className="site-header">
         <h1>{site.title}</h1>
         <span className="subtitle">{site.subtitle}</span>
       </header>
+
+      <UserMenu viewer={viewer} />
 
       <Timeline
         from={range[0]}
@@ -487,7 +505,12 @@ export default function MapView() {
       />
 
       {selected && (
-        <PhotoModal photo={selected} onClose={() => setSelected(null)} />
+        <PhotoModal
+          photo={selected}
+          viewer={viewer}
+          likedInitially={likedIds.includes(selected.id)}
+          onClose={() => setSelected(null)}
+        />
       )}
     </>
   );

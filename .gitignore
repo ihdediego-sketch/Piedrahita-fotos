@@ -6,3 +6,7 @@
 next-env.d.ts
 .env*.local
 .vercel
+
+# Supabase CLI
+/supabase/.branches
+/supabase/.temp

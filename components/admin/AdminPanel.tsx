@@ -1,578 +1,440 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import maplibregl from "maplibre-gl";
-import "maplibre-gl/dist/maplibre-gl.css";
-import type { Photo } from "@/lib/photos";
-import type { SiteContent } from "@/lib/site";
+import { useEffect, useState, useTransition } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, Check, Circle, Plus, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import PhotoFields, {
+  emptyDraft,
+  toDraft,
+  type Draft,
+} from "@/components/PhotoEditor";
+import {
+  deletePhoto,
+  savePhoto,
+  saveSiteContent,
+  setPhotoStatus,
+  setRole,
+} from "@/app/actions/photos";
+import { defaultDateLabel } from "@/lib/photos";
+import {
+  ROLE_LABELS,
+  STATUS_LABELS,
+  isAdmin,
+  type Photo,
+  type PhotoStatus,
+  type Profile,
+  type Role,
+  type SiteContent,
+  type Viewer,
+} from "@/lib/types";
 import "./admin.css";
 
-const PIEDRAHITA: [number, number] = [-5.3238, 40.4619];
+type Tab = "pendientes" | "fotos" | "textos" | "personas";
 
-const MAP_STYLE: maplibregl.StyleSpecification = {
-  version: 8,
-  sources: {
-    carto: {
-      type: "raster",
-      // Mismas teselas que el mapa público (ver MapView) para colocar el punto
-      // sobre el mismo dibujo de calles que verá el visitante.
-      tiles: [
-        "https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png",
-      ],
-      tileSize: 256,
-      attribution: "© OpenStreetMap © CARTO",
-    },
-  },
-  layers: [{ id: "carto", type: "raster", source: "carto" }],
-};
+const ROLES: Role[] = ["usuario", "colaborador", "admin"];
 
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 40);
-}
-
-function defaultDateLabel(p: Photo): string {
-  return p.yearFrom === p.yearTo
-    ? String(p.yearFrom)
-    : `c. ${p.yearFrom}–${p.yearTo}`;
-}
-
-/** Mini-mapa para elegir la posición de la foto con un clic. */
-function LocationPicker({
-  lat,
-  lng,
-  onPick,
+export default function AdminPanel({
+  viewer,
+  photos,
+  site,
+  profiles,
 }: {
-  lat: number;
-  lng: number;
-  onPick: (lat: number, lng: number) => void;
+  viewer: Viewer;
+  photos: Photo[];
+  site: SiteContent;
+  profiles: Profile[];
 }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<maplibregl.Map | null>(null);
-  const markerRef = useRef<maplibregl.Marker | null>(null);
-  const onPickRef = useRef(onPick);
-  onPickRef.current = onPick;
-  const [full, setFull] = useState(false);
+  const router = useRouter();
+  const admin = isAdmin(viewer);
 
-  useEffect(() => {
-    if (!ref.current) return;
-    const hasPos = Number.isFinite(lat) && Number.isFinite(lng);
-    const center: [number, number] = hasPos ? [lng, lat] : PIEDRAHITA;
+  const pending = photos.filter((p) => p.status === "pending");
+  const rest = photos.filter((p) => p.status !== "pending");
 
-    const map = new maplibregl.Map({
-      container: ref.current,
-      style: MAP_STYLE,
-      center,
-      zoom: 15,
-      attributionControl: { compact: true },
-    });
-    mapRef.current = map;
-    // La rueda debe desplazar el panel, no hacer zoom: el zoom va por botones.
-    // A pantalla completa sí se activa (no hay nada que desplazar detrás).
-    map.scrollZoom.disable();
-    map.addControl(
-      new maplibregl.NavigationControl({ showCompass: false }),
-      "top-right"
-    );
-
-    const marker = new maplibregl.Marker({ color: "#111" })
-      .setLngLat(center)
-      .addTo(map);
-    markerRef.current = marker;
-
-    map.on("click", (e) => {
-      marker.setLngLat(e.lngLat);
-      onPickRef.current(
-        Number(e.lngLat.lat.toFixed(5)),
-        Number(e.lngLat.lng.toFixed(5))
-      );
-    });
-
-    return () => {
-      map.remove();
-      mapRef.current = null;
-      markerRef.current = null;
-    };
-    // El componente se remonta al cambiar de foto (key en PhotoForm), así que
-    // basta con crear el mapa una vez; las coordenadas escritas a mano se
-    // reflejan en el efecto de abajo sin recrearlo.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (markerRef.current && Number.isFinite(lat) && Number.isFinite(lng)) {
-      markerRef.current.setLngLat([lng, lat]);
-    }
-  }, [lat, lng]);
-
-  // El contenedor cambia de tamaño al abrir/cerrar la pantalla completa, así que
-  // hay que avisar al mapa; de paso la rueda hace zoom solo en modo grande.
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-    map.resize();
-    if (full) map.scrollZoom.enable();
-    else map.scrollZoom.disable();
-
-    if (!full) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setFull(false);
-    };
-    window.addEventListener("keydown", onKey);
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prevOverflow;
-    };
-  }, [full]);
-
-  return (
-    <div className={`admin-map-wrap${full ? " fullscreen" : ""}`}>
-      <div className="admin-map" ref={ref} />
-      {full ? (
-        <button
-          type="button"
-          className="map-close-btn"
-          onClick={() => setFull(false)}
-          title="Cerrar pantalla completa (Esc)"
-          aria-label="Cerrar pantalla completa"
-        >
-          ✕
-        </button>
-      ) : (
-        <button
-          type="button"
-          className="map-full-btn"
-          onClick={() => setFull(true)}
-          title="Pantalla completa"
-        >
-          Ampliar ⤢
-        </button>
-      )}
-    </div>
+  const [tab, setTab] = useState<Tab>(
+    pending.length > 0 ? "pendientes" : "fotos"
   );
-}
-
-function PhotoForm({
-  photo,
-  onChange,
-  onDelete,
-}: {
-  photo: Photo;
-  onChange: (p: Photo) => void;
-  onDelete: () => void;
-}) {
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-
-  const set = <K extends keyof Photo>(key: K, value: Photo[K]) =>
-    onChange({ ...photo, [key]: value });
-
-  const upload = async (file: File) => {
-    if (!photo.id) {
-      setUploadError("Pon primero un título (genera el identificador).");
-      return;
-    }
-    setUploading(true);
-    setUploadError(null);
-    const form = new FormData();
-    form.append("file", file);
-    form.append("id", photo.id);
-    const res = await fetch("/api/admin/upload", { method: "POST", body: form });
-    const data = await res.json();
-    setUploading(false);
-    if (!res.ok) {
-      setUploadError(data.error ?? "Error al subir la imagen");
-      return;
-    }
-    onChange({ ...photo, image: data.image });
-  };
-
-  return (
-    <div className="photo-form">
-      <div className="photo-form-head">
-        <h2>{photo.title || "Nueva fotografía"}</h2>
-        <button className="delete-btn" onClick={onDelete}>
-          Eliminar
-        </button>
-      </div>
-
-      <div className="photo-form-cols">
-        <div className="photo-form-fields">
-          <label>
-            Título
-            <input
-              type="text"
-              value={photo.title}
-              onChange={(e) => set("title", e.target.value)}
-            />
-          </label>
-
-          <label>
-            Descripción
-            <textarea
-              rows={7}
-              value={photo.description}
-              onChange={(e) => set("description", e.target.value)}
-            />
-          </label>
-
-          <div className="field-row">
-            <label>
-              Año desde
-              <input
-                type="number"
-                value={photo.yearFrom || ""}
-                onChange={(e) => {
-                  const y = Number(e.target.value);
-                  onChange({
-                    ...photo,
-                    yearFrom: y,
-                    yearTo: photo.yearTo < y ? y : photo.yearTo,
-                  });
-                }}
-              />
-            </label>
-            <label>
-              Año hasta
-              <input
-                type="number"
-                value={photo.yearTo || ""}
-                onChange={(e) => set("yearTo", Number(e.target.value))}
-              />
-            </label>
-          </div>
-
-          <label>
-            Fecha mostrada
-            <input
-              type="text"
-              value={photo.dateLabel}
-              placeholder={defaultDateLabel(photo)}
-              onChange={(e) => set("dateLabel", e.target.value)}
-            />
-            <span className="hint">
-              Ej.: «14 de agosto de 1932» o «c. 1890–1910». Si se deja vacía se
-              usa el rango de años.
-            </span>
-          </label>
-
-          <label className="check-field">
-            <input
-              type="checkbox"
-              checked={photo.featured ?? false}
-              onChange={(e) => set("featured", e.target.checked)}
-            />
-            <span>Hito relevante</span>
-            <span className="hint">
-              Se marca en el mapa con un punto marrón más grande.
-            </span>
-          </label>
-
-          <div className="field-row">
-            <label>
-              Latitud
-              <input
-                type="number"
-                step="0.00001"
-                value={photo.lat || ""}
-                onChange={(e) => set("lat", Number(e.target.value))}
-              />
-            </label>
-            <label>
-              Longitud
-              <input
-                type="number"
-                step="0.00001"
-                value={photo.lng || ""}
-                onChange={(e) => set("lng", Number(e.target.value))}
-              />
-            </label>
-          </div>
-        </div>
-
-        <div className="photo-form-side">
-          <div className="image-box">
-            {photo.image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={photo.image} alt={photo.title} />
-            ) : (
-              <span className="image-placeholder">Sin imagen</span>
-            )}
-          </div>
-          <label className="upload-btn">
-            {uploading ? "Subiendo…" : "Subir imagen"}
-            <input
-              type="file"
-              accept=".jpg,.jpeg,.png,.webp,.avif,.svg,.gif"
-              hidden
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) upload(f);
-                e.target.value = "";
-              }}
-            />
-          </label>
-          {uploadError && <p className="admin-error">{uploadError}</p>}
-
-          <LocationPicker
-            lat={photo.lat}
-            lng={photo.lng}
-            onPick={(lat, lng) => onChange({ ...photo, lat, lng })}
-          />
-          <span className="hint">Haz clic en el mapa para colocar la foto.</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-type Tab = "textos" | "fotos";
-
-export default function AdminPanel() {
-  const [siteContent, setSiteContent] = useState<SiteContent | null>(null);
-  const [photos, setPhotos] = useState<Photo[]>([]);
-  const [tab, setTab] = useState<Tab>("textos");
-  const [selected, setSelected] = useState<number | null>(null);
-  const [dirty, setDirty] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const [draft, setDraft] = useState<Draft | null>(null);
+  const [siteDraft, setSiteDraft] = useState(site);
+  const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
-  const [errors, setErrors] = useState<string[]>([]);
+  const [busy, startTransition] = useTransition();
+
+  const siteDirty =
+    siteDraft.title !== site.title ||
+    siteDraft.subtitle !== site.subtitle ||
+    siteDraft.metaTitle !== site.metaTitle ||
+    siteDraft.metaDescription !== site.metaDescription;
+
+  // Los datos llegan del servidor: tras refrescar hay que soltar el borrador
+  // de textos para no quedarse con el valor viejo marcado como sucio.
+  useEffect(() => setSiteDraft(site), [site]);
 
   useEffect(() => {
-    fetch("/api/admin/content")
-      .then((r) => r.json())
-      .then((data) => {
-        setSiteContent(data.site);
-        setPhotos(data.photos);
-      });
-  }, []);
-
-  useEffect(() => {
-    if (!dirty) return;
+    if (!draft && !siteDirty) return;
     const warn = (e: BeforeUnloadEvent) => e.preventDefault();
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
-  }, [dirty]);
+  }, [draft, siteDirty]);
 
-  if (!siteContent) {
-    return (
-      <main className="admin">
-        <p className="hint">Cargando…</p>
-      </main>
-    );
-  }
-
-  const touch = () => {
-    setDirty(true);
+  const run = (fn: () => Promise<{ ok: boolean; error?: string }>) => {
+    setError(null);
     setSaved(false);
-  };
-
-  const updateSite = (patch: Partial<SiteContent>) => {
-    setSiteContent({ ...siteContent, ...patch });
-    touch();
-  };
-
-  const updatePhoto = (index: number, p: Photo) => {
-    const next = { ...p };
-    // Mientras la foto no tenga imagen subida, el id se deriva del título
-    if (!photos[index].image && !p.image) next.id = slugify(p.title);
-    setPhotos(photos.map((old, i) => (i === index ? next : old)));
-    touch();
-  };
-
-  const addPhoto = () => {
-    const p: Photo = {
-      id: "",
-      title: "",
-      description: "",
-      lat: NaN,
-      lng: NaN,
-      yearFrom: 1900,
-      yearTo: 1900,
-      dateLabel: "",
-      image: "",
-      featured: false,
-    };
-    setPhotos([p, ...photos]);
-    setSelected(0);
-    touch();
-  };
-
-  const deletePhoto = (index: number) => {
-    if (!confirm(`¿Eliminar «${photos[index].title || "sin título"}»?`)) return;
-    setPhotos(photos.filter((_, i) => i !== index));
-    setSelected(null);
-    touch();
-  };
-
-  const save = async () => {
-    setSaving(true);
-    setErrors([]);
-    const cleaned = photos.map((p) => ({
-      ...p,
-      id: p.id || slugify(p.title),
-      dateLabel: p.dateLabel.trim() || defaultDateLabel(p),
-    }));
-    const res = await fetch("/api/admin/content", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ site: siteContent, photos: cleaned }),
+    startTransition(async () => {
+      const res = await fn();
+      if (!res.ok) return setError(res.error ?? "No se pudo guardar.");
+      setSaved(true);
+      router.refresh();
     });
-    setSaving(false);
-    if (!res.ok) {
-      const data = await res.json().catch(() => null);
-      setErrors(data?.errors ?? ["Error al guardar"]);
-      return;
-    }
-    setPhotos(cleaned);
-    setDirty(false);
-    setSaved(true);
   };
+
+  const savePhotoDraft = () => {
+    if (!draft) return;
+    run(async () => {
+      const res = await savePhoto(draft);
+      if (res.ok) setDraft(null);
+      return res;
+    });
+  };
+
+  const moderate = (photo: Photo, status: PhotoStatus) => {
+    const note =
+      status === "rejected"
+        ? (prompt(`Motivo del rechazo de «${photo.title}» (opcional):`) ?? "")
+        : "";
+    run(() => setPhotoStatus(photo.id, status, note));
+  };
+
+  const remove = (photo: Photo) => {
+    if (!confirm(`¿Eliminar «${photo.title}»? No se puede deshacer.`)) return;
+    run(async () => {
+      const res = await deletePhoto(photo.id);
+      if (res.ok && draft?.id === photo.id) setDraft(null);
+      return res;
+    });
+  };
+
+  const photoRow = (p: Photo, extra?: React.ReactNode) => (
+    <li key={p.id}>
+      <Button
+        variant="ghost"
+        className={`photo-row${draft?.id === p.id ? " selected" : ""}`}
+        onClick={() => setDraft(toDraft(p))}
+      >
+        <span className="thumb">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {p.image && <img src={p.image} alt="" />}
+        </span>
+        <span className="photo-row-text">
+          <span className="photo-row-title">{p.title || "(sin título)"}</span>
+          <span className="photo-row-date">
+            {p.featured && (
+              <span className="row-featured" title="Hito relevante">
+                <Circle aria-hidden size={8} fill="currentColor" stroke="none" />
+              </span>
+            )}
+            <span className={`status-tag ${p.status}`}>
+              {STATUS_LABELS[p.status]}
+            </span>
+            {p.dateLabel || defaultDateLabel(p)}
+          </span>
+          {p.authorName && (
+            <span className="hint">Aportada por {p.authorName}</span>
+          )}
+        </span>
+      </Button>
+      {extra}
+    </li>
+  );
 
   return (
     <main className="admin">
       <header className="admin-header">
         <div>
-          <h1>Piedrahíta · Admin</h1>
+          <Link href="/" className="back-link">
+            <ArrowLeft aria-hidden size={14} strokeWidth={1.8} /> Volver al mapa
+          </Link>
+          <h1>Piedrahíta · Panel</h1>
         </div>
         <div className="admin-actions">
-          {saved && <span className="saved-note">Guardado ✓</span>}
-          <button className="save-btn" onClick={save} disabled={saving || !dirty}>
-            {saving ? "Guardando…" : "Guardar cambios"}
-          </button>
+          {saved && (
+            <span className="saved-note">
+              Guardado <Check aria-hidden size={13} strokeWidth={2} />
+            </span>
+          )}
+          <span className="user-role">{viewer?.displayName}</span>
         </div>
       </header>
 
       <nav className="admin-tabs" role="tablist">
-        <button
+        <Button
+          variant="ghost"
           role="tab"
-          aria-selected={tab === "textos"}
-          className={tab === "textos" ? "active" : ""}
-          onClick={() => setTab("textos")}
+          aria-selected={tab === "pendientes"}
+          className={tab === "pendientes" ? "active" : ""}
+          onClick={() => setTab("pendientes")}
         >
-          Textos
-        </button>
-        <button
+          Pendientes ({pending.length})
+        </Button>
+        <Button
+          variant="ghost"
           role="tab"
           aria-selected={tab === "fotos"}
           className={tab === "fotos" ? "active" : ""}
           onClick={() => setTab("fotos")}
         >
-          Fotografías ({photos.length})
-        </button>
+          Fotografías ({rest.length})
+        </Button>
+        {admin && (
+          <Button
+            variant="ghost"
+            role="tab"
+            aria-selected={tab === "textos"}
+            className={tab === "textos" ? "active" : ""}
+            onClick={() => setTab("textos")}
+          >
+            Textos
+          </Button>
+        )}
+        {admin && (
+          <Button
+            variant="ghost"
+            role="tab"
+            aria-selected={tab === "personas"}
+            className={tab === "personas" ? "active" : ""}
+            onClick={() => setTab("personas")}
+          >
+            Personas ({profiles.length})
+          </Button>
+        )}
       </nav>
 
-      {errors.length > 0 && (
-        <div className="admin-errors">
-          {errors.map((e, i) => (
-            <p key={i} className="admin-error">
-              {e}
-            </p>
-          ))}
-        </div>
-      )}
+      {error && <p className="admin-error">{error}</p>}
 
-      {tab === "textos" && (
-        <div className="pane text-pane">
-          <h2>Textos de la web</h2>
-          <div className="field-row">
-            <label>
-              Título
-              <input
-                type="text"
-                value={siteContent.title}
-                onChange={(e) => updateSite({ title: e.target.value })}
-              />
-            </label>
-            <label>
-              Subtítulo
-              <input
-                type="text"
-                value={siteContent.subtitle}
-                onChange={(e) => updateSite({ subtitle: e.target.value })}
-              />
-            </label>
-          </div>
-          <div className="field-row">
-            <label>
-              Título de la pestaña (SEO)
-              <input
-                type="text"
-                value={siteContent.metaTitle}
-                onChange={(e) => updateSite({ metaTitle: e.target.value })}
-              />
-            </label>
-            <label>
-              Descripción (SEO)
-              <input
-                type="text"
-                value={siteContent.metaDescription}
-                onChange={(e) => updateSite({ metaDescription: e.target.value })}
-              />
-            </label>
-          </div>
-        </div>
-      )}
-
-      {tab === "fotos" && (
+      {(tab === "pendientes" || tab === "fotos") && (
         <div className="photos-layout">
           <aside className="photos-list-pane">
-            <button className="add-btn" onClick={addPhoto}>
-              + Añadir fotografía
-            </button>
+            {tab === "fotos" && (
+              <Button
+                variant="ghost"
+                className="add-btn"
+                onClick={() => setDraft({ ...emptyDraft(), status: "published" })}
+              >
+                <Plus aria-hidden size={13} strokeWidth={2} /> Añadir fotografía
+              </Button>
+            )}
+
+            {tab === "pendientes" && pending.length === 0 && (
+              <p className="hint pane-note">Nada por revisar. Todo al día.</p>
+            )}
+
             <ul className="photo-list">
-              {photos.map((photo, i) => (
-                <li key={i}>
-                  <button
-                    className={`photo-row${selected === i ? " selected" : ""}`}
-                    onClick={() => setSelected(i)}
-                  >
-                    <span className="thumb">
-                      {photo.image && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={photo.image} alt="" />
-                      )}
+              {(tab === "pendientes" ? pending : rest).map((p) =>
+                photoRow(
+                  p,
+                  tab === "pendientes" ? (
+                    <span className="row-actions">
+                      <Button
+                        variant="ghost"
+                        className="approve-btn"
+                        title="Aprobar y publicar"
+                        aria-label="Aprobar"
+                        disabled={busy}
+                        onClick={() => moderate(p, "published")}
+                      >
+                        <Check aria-hidden size={14} strokeWidth={2} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="reject-btn"
+                        title="Rechazar"
+                        aria-label="Rechazar"
+                        disabled={busy}
+                        onClick={() => moderate(p, "rejected")}
+                      >
+                        <X aria-hidden size={14} strokeWidth={2} />
+                      </Button>
                     </span>
-                    <span className="photo-row-text">
-                      <span className="photo-row-title">
-                        {photo.title || "(sin título)"}
-                      </span>
-                      <span className="photo-row-date">
-                        {photo.featured && (
-                          <span className="row-featured" title="Hito relevante">
-                            ●{" "}
-                          </span>
-                        )}
-                        {photo.dateLabel || defaultDateLabel(photo)}
-                      </span>
-                    </span>
-                  </button>
-                </li>
-              ))}
+                  ) : null
+                )
+              )}
             </ul>
           </aside>
 
           <section className="photo-detail-pane">
-            {selected !== null && photos[selected] ? (
-              <PhotoForm
-                key={selected}
-                photo={photos[selected]}
-                onChange={(p) => updatePhoto(selected, p)}
-                onDelete={() => deletePhoto(selected)}
-              />
+            {draft ? (
+              <div className="photo-form">
+                <div className="photo-form-head">
+                  <h2>{draft.title || "Nueva fotografía"}</h2>
+                  <div className="admin-actions">
+                    {draft.id && draft.status === "published" && (
+                      <Button
+                        variant="ghost"
+                        disabled={busy}
+                        title="Quitar del mapa sin borrarla"
+                        onClick={() =>
+                          run(() => setPhotoStatus(draft.id!, "pending"))
+                        }
+                      >
+                        Despublicar
+                      </Button>
+                    )}
+                    {draft.id && draft.status !== "published" && (
+                      <Button
+                        variant="ghost"
+                        className="approve-btn"
+                        disabled={busy}
+                        onClick={() =>
+                          run(() => setPhotoStatus(draft.id!, "published"))
+                        }
+                      >
+                        Publicar
+                      </Button>
+                    )}
+                    {draft.id && admin && (
+                      <Button
+                        variant="ghost"
+                        className="delete-btn"
+                        disabled={busy}
+                        onClick={() => {
+                          const p = photos.find((x) => x.id === draft.id);
+                          if (p) remove(p);
+                        }}
+                      >
+                        Eliminar
+                      </Button>
+                    )}
+                    <Button variant="ghost" onClick={() => setDraft(null)}>
+                      Cerrar
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="save-btn"
+                      onClick={savePhotoDraft}
+                      disabled={busy}
+                    >
+                      {busy ? "Guardando…" : "Guardar"}
+                    </Button>
+                  </div>
+                </div>
+
+                <PhotoFields
+                  key={draft.id ?? "nueva"}
+                  draft={draft}
+                  onChange={setDraft}
+                  canFeature
+                />
+              </div>
             ) : (
               <p className="empty-detail">
                 Selecciona una fotografía de la lista para editarla.
               </p>
             )}
           </section>
+        </div>
+      )}
+
+      {tab === "textos" && admin && (
+        <div className="pane text-pane">
+          <div className="photo-form-head">
+            <h2>Textos de la web</h2>
+            <Button
+              variant="ghost"
+              className="save-btn"
+              disabled={busy || !siteDirty}
+              onClick={() => run(() => saveSiteContent(siteDraft))}
+            >
+              {busy ? "Guardando…" : "Guardar cambios"}
+            </Button>
+          </div>
+          <div className="field-row">
+            <label>
+              Título
+              <Input
+                type="text"
+                value={siteDraft.title}
+                onChange={(e) =>
+                  setSiteDraft({ ...siteDraft, title: e.target.value })
+                }
+              />
+            </label>
+            <label>
+              Subtítulo
+              <Input
+                type="text"
+                value={siteDraft.subtitle}
+                onChange={(e) =>
+                  setSiteDraft({ ...siteDraft, subtitle: e.target.value })
+                }
+              />
+            </label>
+          </div>
+          <div className="field-row">
+            <label>
+              Título de la pestaña (SEO)
+              <Input
+                type="text"
+                value={siteDraft.metaTitle}
+                onChange={(e) =>
+                  setSiteDraft({ ...siteDraft, metaTitle: e.target.value })
+                }
+              />
+            </label>
+            <label>
+              Descripción (SEO)
+              <Input
+                type="text"
+                value={siteDraft.metaDescription}
+                onChange={(e) =>
+                  setSiteDraft({
+                    ...siteDraft,
+                    metaDescription: e.target.value,
+                  })
+                }
+              />
+            </label>
+          </div>
+        </div>
+      )}
+
+      {tab === "personas" && admin && (
+        <div className="pane">
+          <h2>Personas</h2>
+          <p className="hint pane-note">
+            Un <strong>colaborador</strong> publica fotos y textos y aprueba lo
+            que envían los demás. Un <strong>usuario registrado</strong> puede
+            enviar fotos —quedan pendientes—, dar me gusta y comentar.
+          </p>
+          <ul className="people-list">
+            {profiles.map((p) => (
+              <li key={p.id}>
+                <span className="person-name">
+                  {p.display_name || "(sin nombre)"}
+                  {p.id === viewer?.id && <span className="hint"> · tú</span>}
+                </span>
+                <span className="person-roles">
+                  {ROLES.map((role) => (
+                    <Button
+                      key={role}
+                      variant="ghost"
+                      className={`role-btn${p.role === role ? " active" : ""}`}
+                      disabled={busy || p.id === viewer?.id}
+                      onClick={() => run(() => setRole(p.id, role))}
+                      title={
+                        p.id === viewer?.id
+                          ? "No puedes cambiar tu propio rol"
+                          : `Hacer ${ROLE_LABELS[role].toLowerCase()}`
+                      }
+                    >
+                      {ROLE_LABELS[role]}
+                    </Button>
+                  ))}
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </main>

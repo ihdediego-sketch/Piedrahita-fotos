@@ -62,6 +62,9 @@
 }
 
 .saved-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   font-size: 0.75rem;
   letter-spacing: 0.1em;
   color: var(--ink-soft);
@@ -76,11 +79,18 @@
   background: var(--ink);
   color: var(--paper);
   border: 1px solid var(--ink);
+  border-radius: 0 !important;
   padding: 0.6rem 1.3rem;
+  height: auto;
   font-size: 0.8rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   transition: opacity 0.15s ease;
+}
+
+.save-btn:hover {
+  background: var(--ink);
+  color: var(--paper);
 }
 
 .save-btn:disabled {
@@ -88,16 +98,29 @@
   cursor: default;
 }
 
+.admin-tabs-root {
+  flex-shrink: 0;
+  display: flex !important;
+  flex-direction: column;
+}
+
 .admin-tabs {
   flex-shrink: 0;
-  display: flex;
+  display: flex !important;
+  width: auto !important;
+  height: auto !important;
   gap: 0.4rem;
+  padding: 0 !important;
+  background: none !important;
+  border-radius: 0 !important;
   border-bottom: 1px solid var(--line);
 }
 
 .admin-tabs button {
   background: none;
   border: none;
+  border-radius: 0 !important;
+  height: auto;
   padding: 0.7rem 1rem 0.75rem;
   font-size: 0.75rem;
   letter-spacing: 0.14em;
@@ -110,10 +133,12 @@
 
 .admin-tabs button:hover {
   color: var(--ink);
+  background: none;
 }
 
-.admin-tabs button.active {
+.admin-tabs button[data-active] {
   color: var(--ink);
+  background: none;
   border-bottom-color: var(--ink);
 }
 
@@ -135,8 +160,10 @@
 .admin label {
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   gap: 0.35rem;
   font-size: 0.7rem;
+  font-weight: normal;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ink-soft);
@@ -153,6 +180,8 @@
   color: var(--ink);
   background: #fff;
   border: 1px solid #8c8c8c;
+  border-radius: 0 !important;
+  height: auto;
   padding: 0.55rem 0.7rem;
   letter-spacing: normal;
   text-transform: none;
@@ -160,14 +189,19 @@
 }
 
 .admin input:focus,
-.admin textarea:focus {
+.admin textarea:focus,
+.admin input:focus-visible,
+.admin textarea:focus-visible {
   outline: 1px solid var(--ink);
   border-color: var(--ink);
+  box-shadow: none;
 }
 
 .admin textarea {
   resize: vertical;
   line-height: 1.6;
+  field-sizing: fixed;
+  min-height: auto;
 }
 
 .field-row {
@@ -185,10 +219,10 @@
   flex: none;
 }
 
-.check-field input[type="checkbox"] {
+.check-field [data-slot="checkbox"] {
   width: 16px;
   height: 16px;
-  accent-color: #5c3317;
+  border-radius: 3px;
   cursor: pointer;
 }
 
@@ -230,8 +264,14 @@
 
 .add-btn {
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
   background: none;
   border: 1px solid var(--ink);
+  border-radius: 0 !important;
+  height: auto;
   padding: 0.55rem 0.9rem;
   font-size: 0.72rem;
   letter-spacing: 0.12em;
@@ -258,8 +298,10 @@
   align-items: center;
   gap: 0.85rem;
   width: 100%;
+  height: auto;
   background: none;
   border: none;
+  border-radius: 0 !important;
   border-left: 2px solid transparent;
   padding: 0.55rem 0.5rem;
   text-align: left;
@@ -320,6 +362,9 @@
 }
 
 .row-featured {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 0.35rem;
   color: #5c3317;
 }
 
@@ -427,8 +472,13 @@
   top: 8px;
   left: 8px;
   z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: auto;
   background: #fff;
   border: 1px solid var(--line);
+  border-radius: 0 !important;
   padding: 0.35rem 0.6rem;
   font-size: 0.65rem;
   letter-spacing: 0.08em;
@@ -448,6 +498,7 @@
   z-index: 3;
   width: 52px;
   height: 52px;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -456,7 +507,7 @@
   background: #fff;
   color: #111;
   border: 1px solid var(--line);
-  border-radius: 50%;
+  border-radius: 50% !important;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
 }
 
@@ -492,6 +543,8 @@
   flex-shrink: 0;
   background: none;
   border: 1px solid #a01c1c;
+  border-radius: 0 !important;
+  height: auto;
   color: #a01c1c;
   padding: 0.4rem 0.85rem;
   font-size: 0.68rem;
@@ -530,4 +583,245 @@
   .photo-form-side {
     max-width: none;
   }
+}
+
+/* ---------- Autenticación, moderación y personas ----------
+   Añadido al pasar el contenido a Supabase: el panel dejó de ser una
+   herramienta local de una sola persona y ahora hay sesión, estados de
+   revisión y roles que mostrar. */
+
+.admin-tabs button.active {
+  color: var(--ink);
+  border-bottom-color: var(--ink);
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+  color: var(--ink-soft);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.back-link:hover {
+  color: var(--ink);
+}
+
+.pane-note {
+  margin-bottom: 1rem;
+  max-width: 62ch;
+}
+
+/* La lista de fotos gana botones a la derecha: la fila pasa a ser flex y el
+   botón principal se queda con todo el ancho sobrante. */
+.photo-list li {
+  display: flex;
+  align-items: stretch;
+  gap: 0.3rem;
+}
+
+.photo-list li > .photo-row {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.row-actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.25rem;
+  padding-right: 0.4rem;
+}
+
+.approve-btn,
+.reject-btn {
+  height: auto;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--line);
+  background: none;
+}
+
+.approve-btn {
+  color: #1c6b3a;
+}
+
+.approve-btn:hover {
+  background: #1c6b3a;
+  border-color: #1c6b3a;
+  color: #fff;
+}
+
+.reject-btn {
+  color: #a01c1c;
+}
+
+.reject-btn:hover {
+  background: #a01c1c;
+  border-color: #a01c1c;
+  color: #fff;
+}
+
+.status-tag {
+  display: inline-block;
+  margin-right: 0.5rem;
+  padding: 0.05rem 0.4rem;
+  border: 1px solid currentColor;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.status-tag.pending {
+  color: #8a6a1c;
+}
+
+.status-tag.published {
+  color: #1c6b3a;
+}
+
+.status-tag.rejected {
+  color: #a01c1c;
+}
+
+.people-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  overflow-y: auto;
+}
+
+.people-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.person-name {
+  font-size: 0.9rem;
+}
+
+.person-roles {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.role-btn {
+  height: auto;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--line);
+  background: none;
+  color: var(--ink-soft);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.role-btn:hover:not(:disabled) {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.role-btn.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
+/* ---------- Pantalla de acceso ---------- */
+
+.auth-page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 2rem 1.2rem;
+  background: var(--paper);
+}
+
+.auth-card {
+  width: min(26rem, 100%);
+  padding: 2.2rem 2rem;
+  background: #fff;
+  border: 1px solid var(--ink);
+}
+
+.auth-brand {
+  display: block;
+  margin-bottom: 1.6rem;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+
+.auth-card h1 {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 1.7rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.auth-card .hint {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  line-height: 1.55;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 1.6rem 0 1.2rem;
+}
+
+.auth-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.auth-form input {
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--ink-soft);
+  background: #fff;
+  font-size: 0.95rem;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--ink);
+}
+
+.auth-form .hint {
+  font-size: 0.7rem;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.auth-sent {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin: 1.6rem 0;
+  padding: 0.9rem 1rem;
+  border: 1px solid #1c6b3a;
+  color: #1c6b3a;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.auth-foot {
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--line);
 }
