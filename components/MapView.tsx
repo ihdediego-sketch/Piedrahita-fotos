@@ -454,6 +454,10 @@ export default function MapView({
     <>
       <div className="map-root" ref={containerRef} />
 
+      {/* Niebla: blanquea los bordes y deja limpio el centro, para que el
+          título, el menú y la línea de tiempo se lean sobre papel. */}
+      <div className="map-fog" aria-hidden />
+
       <div className="map-controls">
         <div className="map-zoom">
           <Button

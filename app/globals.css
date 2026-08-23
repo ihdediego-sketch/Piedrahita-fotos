@@ -90,11 +90,12 @@ body {
   gap: 0.4rem;
   padding: 1.5rem 2rem 2.5rem;
   pointer-events: none;
-  /* Velo claro: con el mapa más contrastado el título perdía legibilidad
-     sobre manchas oscuras, y multiply ya no bastaba. */
+  /* Velo claro sobre el título. Ahora la niebla del mapa (.map-fog) ya
+     blanquea el borde superior, así que este solo remata el contraste bajo
+     el texto en vez de cargar con todo. */
   background: linear-gradient(
     to bottom,
-    rgba(250, 250, 250, 0.92),
+    rgba(250, 250, 250, 0.72),
     rgba(250, 250, 250, 0)
   );
 }
@@ -125,6 +126,31 @@ div.map-root,
   inset: 0;
   width: 100%;
   height: 100%;
+}
+
+/* Niebla de papel sobre el mapa: opaca en los bordes, transparente en el
+   centro. Da fondo legible al título, al menú y a la línea de tiempo sin
+   ponerles una barra encima, y concentra la mirada en el centro del mapa.
+   Va por debajo de la interfaz (z-index 20) y por encima del lienzo. */
+.map-fog {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 62% 58% at 50% 48%,
+      rgba(250, 250, 250, 0) 45%,
+      rgba(250, 250, 250, 0.45) 78%,
+      rgba(250, 250, 250, 0.88) 100%
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(250, 250, 250, 0.75) 0%,
+      rgba(250, 250, 250, 0) 22%,
+      rgba(250, 250, 250, 0) 78%,
+      rgba(250, 250, 250, 0.75) 100%
+    );
 }
 
 /* La escala de grises ya no se hace aquí: un filter sobre el canvas apagaría
@@ -760,10 +786,28 @@ div.map-root,
     object-fit: contain;
   }
 
+  /* El pie —me gusta y barra de comentar— se queda fijo abajo como en
+     escritorio; solo la descripción y los comentarios scrollan en medio. El
+     padding pasa del cuerpo a estas dos franjas para que cada una se
+     encargue de su propio aire. */
   .modal-backdrop:not(.fullscreen) .modal-body {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+  }
+
+  .modal-backdrop:not(.fullscreen) .modal-scroll {
     min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
+    padding: 1.4rem 2rem 0;
+  }
+
+  .modal-backdrop:not(.fullscreen) .modal-foot {
+    flex: 0 0 auto;
+    padding: 1.2rem 2rem 2.2rem;
   }
 }
 
@@ -783,8 +827,13 @@ div.map-root,
   .modal-head {
     padding: 1.2rem 3.2rem 1rem 1.3rem;
   }
-  .modal-body {
-    padding: 1.3rem 1.3rem 1.6rem;
+  /* Con la misma especificidad que la regla base de una columna, para que
+     gane sobre ella y no al revés. */
+  .modal-backdrop:not(.fullscreen) .modal-scroll {
+    padding: 1.3rem 1.3rem 0;
+  }
+  .modal-backdrop:not(.fullscreen) .modal-foot {
+    padding: 1.2rem 1.3rem 1.6rem;
   }
 
   /* Casi todo el ancho para la foto, y aire arriba y abajo para que el modal

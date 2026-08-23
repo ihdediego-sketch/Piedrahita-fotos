@@ -102,31 +102,63 @@
   flex-direction: column;
 }
 
+/* Control segmentado: una sola pastilla de tinta que viaja entre pestañas,
+   posicionada desde JS porque cada etiqueta mide distinto. */
 .admin-tabs {
+  position: relative;
   flex-shrink: 0;
   display: flex !important;
+  align-self: flex-start;
   width: auto !important;
   height: auto !important;
-  gap: 0.4rem;
-  padding: 0 !important;
-  background: none !important;
+  gap: 0.15rem;
+  margin-top: 1.1rem;
+  padding: 0.25rem !important;
+  background: color-mix(in srgb, var(--ink) 5%, var(--paper)) !important;
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius) * 1.5);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.admin-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.admin-tabs-marker {
+  position: absolute;
+  top: 0.25rem;
+  left: 0;
+  bottom: 0.25rem;
   border-radius: var(--radius);
-  border-bottom: 1px solid var(--line);
+  background: var(--ink);
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
 }
 
 .admin-tabs button {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-shrink: 0;
   background: none;
   border: none;
   border-radius: var(--radius);
   height: auto;
-  padding: 0.7rem 1rem 0.75rem;
-  font-size: 0.75rem;
-  letter-spacing: 0.14em;
+  padding: 0.55rem 0.95rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
   color: var(--ink-soft);
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  transition: color 0.15s ease;
+  transition: color 0.2s ease;
+}
+
+.admin-tabs button svg {
+  opacity: 0.75;
+  transition: opacity 0.2s ease;
 }
 
 .admin-tabs button:hover {
@@ -134,10 +166,31 @@
   background: none;
 }
 
+.admin-tabs button:hover svg {
+  opacity: 1;
+}
+
+.admin-tabs button.active,
 .admin-tabs button[data-active] {
-  color: var(--ink);
+  color: var(--paper-solid);
   background: none;
-  border-bottom-color: var(--ink);
+}
+
+.admin-tabs button.active svg {
+  opacity: 1;
+}
+
+/* La cuenta acompaña a la etiqueta sin competir con ella. */
+.tab-count {
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, currentColor 55%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-tabs-marker {
+    transition: none;
+  }
 }
 
 .admin-errors {
@@ -666,11 +719,6 @@
    herramienta local de una sola persona y ahora hay sesión, estados de
    revisión y roles que mostrar. */
 
-.admin-tabs button.active {
-  color: var(--ink);
-  border-bottom-color: var(--ink);
-}
-
 .back-link {
   display: inline-flex;
   align-items: center;
@@ -1095,9 +1143,8 @@
 .tab-badge {
   display: inline-grid;
   place-items: center;
-  min-width: 1.15rem;
-  height: 1.15rem;
-  margin-left: 0.4rem;
+  min-width: 1.1rem;
+  height: 1.1rem;
   padding: 0 0.25rem;
   border-radius: 999px;
   background: var(--warning);

@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -9,11 +15,15 @@ import {
   Circle,
   Eye,
   EyeOff,
+  ImageIcon,
   Plus,
   Save,
   Trash2,
+  Type,
+  Users,
   X,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -80,10 +90,75 @@ export default function AdminPanel({
   );
   const [peopleFilter, setPeopleFilter] = useState<PeopleFilter>("todos");
   const [draft, setDraft] = useState<Draft | null>(null);
+  // Copia del borrador tal como se abrió: lo que permite saber si hay cambios
+  // que guardar y, por tanto, si el botón de guardar tiene algo que hacer.
+  const [pristine, setPristine] = useState<Draft | null>(null);
   const [siteDraft, setSiteDraft] = useState(site);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [busy, startTransition] = useTransition();
+
+  const tabs: {
+    id: Tab;
+    label: string;
+    icon: LucideIcon;
+    count?: number;
+    badge?: number;
+  }[] = [
+    {
+      id: "fotos",
+      label: "Fotografías",
+      icon: ImageIcon,
+      count: photos.length,
+      badge: pending.length,
+    },
+    ...(admin
+      ? ([
+          { id: "textos", label: "Textos", icon: Type },
+          {
+            id: "personas",
+            label: "Personas",
+            icon: Users,
+            count: profiles.length,
+          },
+        ] as const)
+      : []),
+  ];
+
+  const tabsRef = useRef<HTMLDivElement>(null);
+  // La pastilla activa se dibuja una sola vez y viaja entre pestañas: hay que
+  // medir el botón elegido porque cada etiqueta tiene un ancho distinto.
+  const [marker, setMarker] = useState<{ left: number; width: number } | null>(
+    null
+  );
+
+  useLayoutEffect(() => {
+    const nav = tabsRef.current;
+    if (!nav) return;
+    const measure = () => {
+      const active = nav.querySelector<HTMLElement>('[data-tab-active="true"]');
+      if (active)
+        setMarker({ left: active.offsetLeft, width: active.offsetWidth });
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(nav);
+    return () => observer.disconnect();
+  }, [tab, tabs.length]);
+
+  /** Flechas entre pestañas, como espera un tablist. */
+  const onTabKeyDown = (event: React.KeyboardEvent) => {
+    const step =
+      event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+    if (!step) return;
+    event.preventDefault();
+    const index = tabs.findIndex((t) => t.id === tab);
+    const next = tabs[(index + step + tabs.length) % tabs.length];
+    setTab(next.id);
+    tabsRef.current
+      ?.querySelectorAll<HTMLElement>("[role=tab]")
+      [tabs.indexOf(next)]?.focus();
+  };
 
   const visiblePhotos =
     photoFilter === "todas"
@@ -95,6 +170,20 @@ export default function AdminPanel({
       ? profiles
       : profiles.filter((p) => p.role === peopleFilter);
 
+  /** Abre una fotografía en el formulario y fija su punto de partida. */
+  const openDraft = (next: Draft) => {
+    setDraft(next);
+    setPristine(next);
+  };
+
+  const closeDraft = () => {
+    setDraft(null);
+    setPristine(null);
+  };
+
+  const draftDirty =
+    !!draft && JSON.stringify(draft) !== JSON.stringify(pristine);
+
   const siteDirty = (
     Object.keys(site) as (keyof SiteContent)[]
   ).some((k) => siteDraft[k] !== site[k]);
@@ -104,11 +193,11 @@ export default function AdminPanel({
   useEffect(() => setSiteDraft(site), [site]);
 
   useEffect(() => {
-    if (!draft && !siteDirty) return;
+    if (!draftDirty && !siteDirty) return;
     const warn = (e: BeforeUnloadEvent) => e.preventDefault();
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
-  }, [draft, siteDirty]);
+  }, [draftDirty, siteDirty]);
 
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>) => {
     setError(null);
@@ -125,7 +214,7 @@ export default function AdminPanel({
     if (!draft) return;
     run(async () => {
       const res = await savePhoto(draft);
-      if (res.ok) setDraft(null);
+      if (res.ok) closeDraft();
       return res;
     });
   };
@@ -142,7 +231,7 @@ export default function AdminPanel({
     if (!confirm(`¿Eliminar «${photo.title}»? No se puede deshacer.`)) return;
     run(async () => {
       const res = await deletePhoto(photo.id);
-      if (res.ok && draft?.id === photo.id) setDraft(null);
+      if (res.ok && draft?.id === photo.id) closeDraft();
       return res;
     });
   };
@@ -183,7 +272,7 @@ export default function AdminPanel({
       <Button
         variant="ghost"
         className={`photo-row${draft?.id === p.id ? " selected" : ""}`}
-        onClick={() => setDraft(toDraft(p))}
+        onClick={() => openDraft(toDraft(p))}
       >
         <span className="thumb">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -235,43 +324,40 @@ export default function AdminPanel({
         </div>
       </header>
 
-      <nav className="admin-tabs" role="tablist">
-        <Button
-          variant="ghost"
-          role="tab"
-          aria-selected={tab === "fotos"}
-          className={tab === "fotos" ? "active" : ""}
-          onClick={() => setTab("fotos")}
-        >
-          Fotografías ({photos.length})
-          {pending.length > 0 && (
-            <span className="tab-badge" title="Pendientes de revisar">
-              {pending.length}
-            </span>
-          )}
-        </Button>
-        {admin && (
+      <nav
+        className="admin-tabs"
+        role="tablist"
+        ref={tabsRef}
+        onKeyDown={onTabKeyDown}
+      >
+        {marker && (
+          <span
+            aria-hidden
+            className="admin-tabs-marker"
+            style={{ transform: `translateX(${marker.left}px)`, width: marker.width }}
+          />
+        )}
+        {tabs.map(({ id, label, icon: Icon, count, badge }) => (
           <Button
+            key={id}
             variant="ghost"
             role="tab"
-            aria-selected={tab === "textos"}
-            className={tab === "textos" ? "active" : ""}
-            onClick={() => setTab("textos")}
+            tabIndex={tab === id ? 0 : -1}
+            aria-selected={tab === id}
+            data-tab-active={tab === id}
+            className={tab === id ? "active" : ""}
+            onClick={() => setTab(id)}
           >
-            Textos
+            <Icon aria-hidden size={14} strokeWidth={1.8} />
+            {label}
+            {count !== undefined && <span className="tab-count">{count}</span>}
+            {badge !== undefined && badge > 0 && (
+              <span className="tab-badge" title="Pendientes de revisar">
+                {badge}
+              </span>
+            )}
           </Button>
-        )}
-        {admin && (
-          <Button
-            variant="ghost"
-            role="tab"
-            aria-selected={tab === "personas"}
-            className={tab === "personas" ? "active" : ""}
-            onClick={() => setTab("personas")}
-          >
-            Personas ({profiles.length})
-          </Button>
-        )}
+        ))}
       </nav>
 
       {error && <p className="admin-error">{error}</p>}
@@ -282,7 +368,7 @@ export default function AdminPanel({
             <Button
               variant="ghost"
               className="add-btn"
-              onClick={() => setDraft({ ...emptyDraft(), status: "published" })}
+              onClick={() => openDraft({ ...emptyDraft(), status: "published" })}
             >
               <Plus aria-hidden size={13} strokeWidth={2} /> Añadir fotografía
             </Button>
@@ -372,15 +458,18 @@ export default function AdminPanel({
                         Eliminar
                       </Button>
                     )}
-                    <Button
-                      variant="ghost"
-                      className="form-action save-btn"
-                      onClick={savePhotoDraft}
-                      disabled={busy}
-                    >
-                      <Save aria-hidden size={15} strokeWidth={1.8} />
-                      {busy ? "Guardando…" : "Guardar"}
-                    </Button>
+                    {/* Sin cambios no hay nada que guardar: el botón sobra. */}
+                    {draftDirty && (
+                      <Button
+                        variant="ghost"
+                        className="form-action save-btn"
+                        onClick={savePhotoDraft}
+                        disabled={busy}
+                      >
+                        <Save aria-hidden size={15} strokeWidth={1.8} />
+                        {busy ? "Guardando…" : "Guardar"}
+                      </Button>
+                    )}
                   </div>
                 </div>
 
@@ -406,15 +495,17 @@ export default function AdminPanel({
         <div className="pane text-pane">
           <div className="photo-form-head">
             <h2>Textos de la web</h2>
-            <Button
-              variant="ghost"
-              className="form-action save-btn"
-              disabled={busy || !siteDirty}
-              onClick={() => run(() => saveSiteContent(siteDraft))}
-            >
-              <Save aria-hidden size={15} strokeWidth={1.8} />
-              {busy ? "Guardando…" : "Guardar cambios"}
-            </Button>
+            {siteDirty && (
+              <Button
+                variant="ghost"
+                className="form-action save-btn"
+                disabled={busy}
+                onClick={() => run(() => saveSiteContent(siteDraft))}
+              >
+                <Save aria-hidden size={15} strokeWidth={1.8} />
+                {busy ? "Guardando…" : "Guardar cambios"}
+              </Button>
+            )}
           </div>
 
           {SITE_TEXT_GROUPS.map((group) => (

@@ -73,15 +73,18 @@ export default function ProfileForm({ viewer }: { viewer: NonNullable<Viewer> })
               <Check aria-hidden size={13} strokeWidth={2} />
             </span>
           )}
-          <Button
-            variant="ghost"
-            className="form-action save-btn"
-            onClick={submit}
-            disabled={pending || uploading || !dirty}
-          >
-            <Save aria-hidden size={15} strokeWidth={1.8} />
-            {pending ? "Guardando…" : "Guardar cambios"}
-          </Button>
+          {/* Sin cambios no hay nada que guardar: el botón sobra. */}
+          {dirty && (
+            <Button
+              variant="ghost"
+              className="form-action save-btn"
+              onClick={submit}
+              disabled={pending || uploading}
+            >
+              <Save aria-hidden size={15} strokeWidth={1.8} />
+              {pending ? "Guardando…" : "Guardar cambios"}
+            </Button>
+          )}
         </div>
       </header>
 
