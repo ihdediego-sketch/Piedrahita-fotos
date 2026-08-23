@@ -703,6 +703,33 @@
   border-bottom: 1px solid var(--line);
 }
 
+.person-id {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+/* Mismo círculo que el avatar del perfil, en pequeño: la cara manda sobre el
+   nombre al recorrer la lista. Sin foto, la inicial ocupa su sitio. */
+.person-avatar {
+  flex: none;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  object-fit: cover;
+  background: var(--fill-placeholder);
+}
+
+.person-initial {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
 .person-name {
   font-size: 0.9rem;
 }

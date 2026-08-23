@@ -20,7 +20,7 @@ import {
   setPhotoStatus,
   setRole,
 } from "@/app/actions/photos";
-import { defaultDateLabel } from "@/lib/photos";
+import { avatarUrl, defaultDateLabel } from "@/lib/photos";
 import {
   ROLE_LABELS,
   ROLE_LABELS_PLURAL,
@@ -467,9 +467,23 @@ export default function AdminPanel({
           <ul className="people-list">
             {visibleProfiles.map((p) => (
               <li key={p.id}>
-                <span className="person-name">
-                  {p.display_name || "(sin nombre)"}
-                  {p.id === viewer?.id && <span className="hint"> · tú</span>}
+                <span className="person-id">
+                  {avatarUrl(p.avatar_path) ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      className="person-avatar"
+                      src={avatarUrl(p.avatar_path)}
+                      alt=""
+                    />
+                  ) : (
+                    <span className="person-avatar person-initial" aria-hidden>
+                      {(p.display_name || "?").trim().charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                  <span className="person-name">
+                    {p.display_name || "(sin nombre)"}
+                    {p.id === viewer?.id && <span className="hint"> · tú</span>}
+                  </span>
                 </span>
                 <span className="person-roles">
                   {ROLES.map((role) => (

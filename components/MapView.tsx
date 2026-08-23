@@ -455,24 +455,26 @@ export default function MapView({
       <div className="map-root" ref={containerRef} />
 
       <div className="map-controls">
-        <Button
-          type="button"
-          variant="ghost"
-          className="map-control"
-          aria-label="Acercar"
-          onClick={() => mapRef.current?.zoomIn()}
-        >
-          <Plus aria-hidden size={17} strokeWidth={1.8} />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          className="map-control"
-          aria-label="Alejar"
-          onClick={() => mapRef.current?.zoomOut()}
-        >
-          <Minus aria-hidden size={17} strokeWidth={1.8} />
-        </Button>
+        <div className="map-zoom">
+          <Button
+            type="button"
+            variant="ghost"
+            className="map-control"
+            aria-label="Acercar"
+            onClick={() => mapRef.current?.zoomIn()}
+          >
+            <Plus aria-hidden size={17} strokeWidth={1.8} />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            className="map-control"
+            aria-label="Alejar"
+            onClick={() => mapRef.current?.zoomOut()}
+          >
+            <Minus aria-hidden size={17} strokeWidth={1.8} />
+          </Button>
+        </div>
         <Button
           type="button"
           variant="ghost"
