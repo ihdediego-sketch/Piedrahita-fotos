@@ -5,45 +5,60 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  /* ---- Primitivos: la paleta real del sitio ---- */
   --ink: #111111;
   --ink-soft: #555555;
-  --paper: #fafafa;
   --line: #e2e2e2;
+  --line-strong: #b4b4b4;
+  --paper: #fafafa;
+  --paper-solid: #ffffff;
+  --border-input: #8c8c8c;
+  --fill-placeholder: #d8d8d8;
   /* Único color del proyecto: marca los hitos destacados sobre el mapa gris */
   --brown: #5c3317;
+  --red: #a01c1c;
+  --green: #1c6b3a;
+  --amber: #8a6a1c;
   --font-sans: var(--font-sans), system-ui, sans-serif;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+
+  /* ---- Semánticos: nombres canónicos de shadcn, mapeados a los primitivos ---- */
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--paper-solid);
+  --card-foreground: var(--ink);
+  --popover: var(--paper-solid);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: var(--paper);
+  --secondary: color-mix(in srgb, var(--ink) 6%, var(--paper));
+  --secondary-foreground: var(--ink);
+  --muted: color-mix(in srgb, var(--ink) 6%, var(--paper));
+  --muted-foreground: var(--ink-soft);
+  --accent: var(--brown);
+  --accent-foreground: var(--paper);
+  --destructive: var(--red);
+  --destructive-foreground: var(--paper-solid);
+  --success: var(--green);
+  --success-foreground: var(--paper-solid);
+  --warning: var(--amber);
+  --warning-foreground: var(--paper-solid);
+  --border: var(--line);
+  --input: var(--border-input);
+  --ring: var(--ink);
+  --chart-1: var(--ink-soft);
+  --chart-2: var(--line-strong);
+  --chart-3: var(--line);
+  --chart-4: var(--ink-soft);
+  --chart-5: var(--ink);
+  --radius: 2px;
+  --sidebar: var(--paper);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--ink);
+  --sidebar-primary-foreground: var(--paper);
+  --sidebar-accent: color-mix(in srgb, var(--ink) 6%, var(--paper));
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: var(--line);
+  --sidebar-ring: var(--ink-soft);
 }
 
 * {
@@ -139,7 +154,7 @@ div.map-root,
   width: 36px;
   height: 36px;
   padding: 0;
-  border-radius: 0 !important;
+  border-radius: var(--radius);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -149,7 +164,7 @@ div.map-root,
   color: var(--ink);
   background: rgba(250, 250, 250, 0.95);
   backdrop-filter: blur(8px);
-  border: 1px solid #9a9a9a;
+  border: 1px solid var(--border-input);
   cursor: pointer;
   transition: background 0.2s ease, border-color 0.2s ease;
 }
@@ -185,8 +200,8 @@ div.map-root,
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #000;
-  border: 2.5px solid #fff;
+  background: var(--ink);
+  border: 2.5px solid var(--paper-solid);
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55), 0 1px 3px rgba(0, 0, 0, 0.35);
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -242,10 +257,10 @@ div.map-root,
   width: var(--size);
   height: var(--size);
   border-radius: 50%;
-  background: #000;
-  border: 2.5px solid #fff;
+  background: var(--ink);
+  border: 2.5px solid var(--paper-solid);
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55), 0 1px 4px rgba(0, 0, 0, 0.35);
-  color: #fff;
+  color: var(--paper-solid);
   font-size: calc(var(--size) * 0.42);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -294,7 +309,8 @@ div.map-root,
   width: min(680px, calc(100vw - 3rem));
   background: rgba(250, 250, 250, 0.95);
   backdrop-filter: blur(8px);
-  border: 1px solid #9a9a9a;
+  border: 1px solid var(--border-input);
+  border-radius: var(--radius);
   padding: 1.1rem 1.6rem 1.3rem;
 }
 
@@ -392,6 +408,7 @@ div.map-root,
 .modal {
   background: var(--paper);
   border: 1px solid var(--ink);
+  border-radius: var(--radius);
   max-width: 720px;
   width: 100%;
   /* dvh y no vh: en el móvil la barra del navegador hace que 100vh sea más
@@ -449,7 +466,7 @@ div.map-root,
    esquina del modal */
 .modal-head {
   padding: 1.7rem 3.6rem 1.1rem 2rem;
-  border-bottom: 1px solid var(--line, #ddd);
+  border-bottom: 1px solid var(--line);
 }
 
 .modal-body {
@@ -481,7 +498,7 @@ div.map-root,
 .modal-description {
   font-size: 0.92rem;
   line-height: 1.7;
-  color: #333;
+  color: var(--ink);
   max-width: 58ch;
 }
 
@@ -493,7 +510,7 @@ div.map-root,
   width: 36px;
   height: 36px;
   padding: 0;
-  border-radius: 0 !important;
+  border-radius: var(--radius);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -526,7 +543,7 @@ div.map-root,
   width: 36px;
   height: 36px;
   padding: 0;
-  border-radius: 0 !important;
+  border-radius: var(--radius);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -780,6 +797,11 @@ div.map-root,
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -804,37 +826,42 @@ div.map-root,
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: var(--ink);
+  --foreground: var(--paper);
+  --card: var(--ink);
+  --card-foreground: var(--paper);
+  --popover: var(--ink);
+  --popover-foreground: var(--paper);
+  --primary: var(--paper);
+  --primary-foreground: var(--ink);
+  --secondary: color-mix(in srgb, var(--paper) 12%, var(--ink));
+  --secondary-foreground: var(--paper);
+  --muted: color-mix(in srgb, var(--paper) 12%, var(--ink));
+  --muted-foreground: var(--line-strong);
+  --accent: var(--brown);
+  --accent-foreground: var(--paper);
+  --destructive: var(--red);
+  --destructive-foreground: var(--paper-solid);
+  --success: var(--green);
+  --success-foreground: var(--paper-solid);
+  --warning: var(--amber);
+  --warning-foreground: var(--paper-solid);
+  --border: color-mix(in srgb, var(--paper) 10%, transparent);
+  --input: color-mix(in srgb, var(--paper) 15%, transparent);
+  --ring: var(--line-strong);
+  --chart-1: var(--line-strong);
+  --chart-2: var(--ink-soft);
+  --chart-3: var(--line);
+  --chart-4: var(--ink-soft);
+  --chart-5: var(--line-strong);
+  --sidebar: var(--ink);
+  --sidebar-foreground: var(--paper);
+  --sidebar-primary: var(--brown);
+  --sidebar-primary-foreground: var(--paper);
+  --sidebar-accent: color-mix(in srgb, var(--paper) 12%, var(--ink));
+  --sidebar-accent-foreground: var(--paper);
+  --sidebar-border: color-mix(in srgb, var(--paper) 10%, transparent);
+  --sidebar-ring: var(--line-strong);
 }
 
 @layer base {
@@ -866,7 +893,7 @@ div.map-root,
   height: auto;
   padding: 0.45rem 0.85rem;
   border: 1px solid var(--ink);
-  border-radius: 0 !important;
+  border-radius: var(--radius);
   background: var(--paper);
   color: var(--ink);
   font-size: 0.68rem;
@@ -880,6 +907,15 @@ div.map-root,
 .user-chip:hover {
   background: var(--ink);
   color: var(--paper);
+}
+
+/* El avatar ocupa el sitio del icono de usuario, sin cambiar la altura */
+.user-avatar {
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: -0.15rem 0;
 }
 
 /* El botón de entrar/registrarse es el único punto de acceso a la sesión
@@ -977,7 +1013,7 @@ div.map-root,
   height: auto;
   padding: 0.35rem 0.75rem;
   border: 1px solid var(--ink-soft);
-  border-radius: 0 !important;
+  border-radius: var(--radius);
   background: none;
   color: var(--ink-soft);
   font-size: 0.8rem;
@@ -1017,7 +1053,7 @@ div.map-root,
 }
 
 .comment-list li {
-  border-left: 2px solid var(--line, #ddd);
+  border-left: 2px solid var(--line);
   padding-left: 0.9rem;
 }
 
@@ -1049,13 +1085,13 @@ div.map-root,
 }
 
 .comment-delete:hover {
-  color: #a01c1c;
+  color: var(--destructive);
 }
 
 .comment-body {
   font-size: 0.88rem;
   line-height: 1.6;
-  color: #333;
+  color: var(--ink);
   white-space: pre-wrap;
 }
 
@@ -1091,7 +1127,7 @@ div.map-root,
   height: auto;
   padding: 0.45rem 1.1rem;
   border: 1px solid var(--ink);
-  border-radius: 0 !important;
+  border-radius: var(--radius);
   background: var(--ink);
   color: var(--paper);
   font-size: 0.68rem;
