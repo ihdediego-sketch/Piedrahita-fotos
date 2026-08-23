@@ -1,5 +1,17 @@
 [
   {
+    "id": "automovil-correo-plaza-de-espana",
+    "title": "Automóvil correo. Plaza de España",
+    "description": "Esta tarjeta postal retrata todo un acontecimiento: la llegada del motor y la velocidad a nuestro pueblo, con medio vecindario posando alrededor.\n\nEl vehículo es un ómnibus-correo de cadenas, de los primeros años del automovilismo español. Sobre la baca corrida con barandilla, el chófer cargaba el equipaje y la saca del correo.\n\nLos coches-correo funcionaban como un eslabón que unía las estaciones de ferrocarril y los pueblos sin vía como Piedrahíta. El servicio cubría el trayecto Ávila-Piedrahíta-Barco de Ávila. Sustituyeron a las diligencias de tiro animal y eran contratadas por el Estado mediante una subasta pública. \n\nLa motorización del correo en las provincias del interior arrancó hacia 1910 y se generalizó en los años veinte, cuando el Circuito Nacional de Firmes Especiales (1926) empezó a asfaltar carreteras. Que un pueblo tuviera coche-correo era motivo de orgullo local, y de ahí que se editaran postales como esta.\n\nAl fondo, entre los árboles, vemos un poste de tendido —eléctrico o telegráfico—, otro signo de los inventos modernos que estaban llegando al pueblo.\n\nAunque la fecha manuscrita indica 1905, es más probable que la imagen haya sido tomada entre 1915 y 1925, puesto que en fechas tan tempranas no se disponía de vehículos de tan gran tamaño para prestar este servicio.",
+    "lat": 40.46348,
+    "lng": -5.32773,
+    "yearFrom": 1880,
+    "yearTo": 1910,
+    "dateLabel": "Fechada en 1905. Más probable 1915-1925",
+    "image": "/photos/automovil-correo-plaza-de-espana.jpg",
+    "featured": false
+  },
+  {
     "id": "ruinas-del-palacio-de-los-duques-de-alba",
     "title": "Ruinas del Palacio del Duque de Alba",
     "description": "Construido entre 1755 y 1766 por el arquitecto francés Jacques Marquet para el XII duque de Alba, el palacio fue incendiado y saqueado por el ejército napoleónico durante la guerra de la Independencia. Esta fotografía muestra su aspecto en los primeros años del S. XX. Podemos observar las grandes chimeneas, hoy desaparecidas y cómo los terrenos circundantes se estaban empleando como tierras de cultivo.",
@@ -26,13 +38,13 @@
   {
     "id": "plaza-mercado",
     "title": "Día de mercado en la Plaza de España",
-    "description": "La plaza porticada de Piedrahíta durante uno de los mercados semanales, con los soportales llenos de puestos de labradores de la comarca del Corneja. El mercado de los jueves era el gran acontecimiento social y económico de la villa.",
-    "lat": 40.46225,
-    "lng": -5.32425,
-    "yearFrom": 1890,
+    "description": "Cada martes, artesanos, labradores y comerciantes del Valle del Corneja se reunían en la plaza de Piedrahíta para vender su género. ",
+    "lat": 40.46342,
+    "lng": -5.32829,
+    "yearFrom": 1880,
     "yearTo": 1910,
-    "dateLabel": "c. 1890–1910",
-    "image": "/photos/plaza-mercado.svg"
+    "dateLabel": "1900",
+    "image": "/photos/plaza-mercado.jpg"
   },
   {
     "id": "santa-maria",
