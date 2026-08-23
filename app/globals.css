@@ -74,12 +74,10 @@ div.map-root,
   height: 100%;
 }
 
-/* Mapa en escala de grises puro para la estética editorial. Sin contrast() ni
-   brightness(): con teselas tan claras, contrast() satura los casi-blancos
-   contra el tope y acaba borrando calles en vez de marcarlas. */
-.map-root .maplibregl-canvas {
-  filter: grayscale(1);
-}
+/* La escala de grises ya no se hace aquí: un filter sobre el canvas apagaría
+   también las zonas verdes y la plaza. Ahora la desatura la propia capa
+   ráster (raster-saturation en MapView), y las capas de encima conservan
+   su color. */
 
 .maplibregl-ctrl-attrib {
   font-size: 10px;
@@ -191,6 +189,57 @@ div.map-root,
     transform: scale(1);
     opacity: 1;
   }
+}
+
+/* ---------- Grupos de puntos solapados ---------- */
+
+.cluster-marker {
+  --size: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: #000;
+  border: 2.5px solid #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55), 0 1px 4px rgba(0, 0, 0, 0.35);
+  color: #fff;
+  font-size: calc(var(--size) * 0.42);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cluster-marker.featured {
+  background: var(--brown);
+  box-shadow: 0 0 0 1px rgba(92, 51, 23, 0.7), 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.cluster-marker:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55), 0 0 0 8px rgba(17, 17, 17, 0.16);
+}
+
+.cluster-marker.featured:hover {
+  box-shadow: 0 0 0 1px rgba(92, 51, 23, 0.7), 0 0 0 8px rgba(92, 51, 23, 0.2);
+}
+
+/* Abanico: sólo decorativo, no debe robarle el clic a los puntos */
+.spider-legs-wrap {
+  pointer-events: none;
+}
+
+.spider-legs line {
+  stroke: rgba(17, 17, 17, 0.45);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 3;
+}
+
+.spider-legs .spider-hub {
+  fill: rgba(17, 17, 17, 0.55);
 }
 
 /* ---------- Línea de tiempo ---------- */

@@ -53,9 +53,11 @@ function LocationPicker({
   onPick: (lat: number, lng: number) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<maplibregl.Map | null>(null);
   const markerRef = useRef<maplibregl.Marker | null>(null);
   const onPickRef = useRef(onPick);
   onPickRef.current = onPick;
+  const [full, setFull] = useState(false);
 
   useEffect(() => {
     if (!ref.current) return;
@@ -69,7 +71,9 @@ function LocationPicker({
       zoom: 15,
       attributionControl: { compact: true },
     });
+    mapRef.current = map;
     // La rueda debe desplazar el panel, no hacer zoom: el zoom va por botones.
+    // A pantalla completa sí se activa (no hay nada que desplazar detrás).
     map.scrollZoom.disable();
     map.addControl(
       new maplibregl.NavigationControl({ showCompass: false }),
@@ -91,6 +95,7 @@ function LocationPicker({
 
     return () => {
       map.remove();
+      mapRef.current = null;
       markerRef.current = null;
     };
     // El componente se remonta al cambiar de foto (key en PhotoForm), así que
@@ -105,7 +110,53 @@ function LocationPicker({
     }
   }, [lat, lng]);
 
-  return <div className="admin-map" ref={ref} />;
+  // El contenedor cambia de tamaño al abrir/cerrar la pantalla completa, así que
+  // hay que avisar al mapa; de paso la rueda hace zoom solo en modo grande.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    map.resize();
+    if (full) map.scrollZoom.enable();
+    else map.scrollZoom.disable();
+
+    if (!full) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setFull(false);
+    };
+    window.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [full]);
+
+  return (
+    <div className={`admin-map-wrap${full ? " fullscreen" : ""}`}>
+      <div className="admin-map" ref={ref} />
+      {full ? (
+        <button
+          type="button"
+          className="map-close-btn"
+          onClick={() => setFull(false)}
+          title="Cerrar pantalla completa (Esc)"
+          aria-label="Cerrar pantalla completa"
+        >
+          ✕
+        </button>
+      ) : (
+        <button
+          type="button"
+          className="map-full-btn"
+          onClick={() => setFull(true)}
+          title="Pantalla completa"
+        >
+          Ampliar ⤢
+        </button>
+      )}
+    </div>
+  );
 }
 
 function PhotoForm({
