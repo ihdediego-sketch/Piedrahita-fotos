@@ -1,0 +1,467 @@
+/* El panel ocupa la ventana completa; el scroll vive dentro de cada columna,
+   no en el body, para que la lista y el editor se muevan por separado.
+   Sube además el contraste respecto al sitio público: los grises suaves de
+   la portada dificultan editar durante largo rato. */
+.admin {
+  --ink-soft: #3a3a3a;
+  --line: #b4b4b4;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 2.5rem 0;
+  background: #fff;
+}
+
+.admin h1 {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 1.6rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin h2 {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin-bottom: 1.1rem;
+}
+
+.admin .hint {
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.admin code {
+  background: #e4e4e4;
+  color: var(--ink);
+  padding: 0 0.3em;
+  font-size: 0.9em;
+}
+
+/* ---------- Cabecera y pestañas (fijas) ---------- */
+
+.admin-header {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding-bottom: 1.1rem;
+  border-bottom: 1px solid var(--ink);
+}
+
+.admin-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-shrink: 0;
+}
+
+.saved-note {
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  color: var(--ink-soft);
+}
+
+.admin button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.save-btn {
+  background: var(--ink);
+  color: var(--paper);
+  border: 1px solid var(--ink);
+  padding: 0.6rem 1.3rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: opacity 0.15s ease;
+}
+
+.save-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.admin-tabs {
+  flex-shrink: 0;
+  display: flex;
+  gap: 0.4rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.admin-tabs button {
+  background: none;
+  border: none;
+  padding: 0.7rem 1rem 0.75rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.15s ease;
+}
+
+.admin-tabs button:hover {
+  color: var(--ink);
+}
+
+.admin-tabs button.active {
+  color: var(--ink);
+  border-bottom-color: var(--ink);
+}
+
+.admin-errors {
+  flex-shrink: 0;
+  border: 1px solid #a01c1c;
+  padding: 0.8rem 1rem;
+  margin-top: 1rem;
+}
+
+.admin-error {
+  color: #a01c1c;
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+/* ---------- Campos ---------- */
+
+.admin label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.admin input[type="text"],
+.admin input[type="number"],
+.admin textarea {
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid #8c8c8c;
+  padding: 0.55rem 0.7rem;
+  letter-spacing: normal;
+  text-transform: none;
+  width: 100%;
+}
+
+.admin input:focus,
+.admin textarea:focus {
+  outline: 1px solid var(--ink);
+  border-color: var(--ink);
+}
+
+.admin textarea {
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.field-row {
+  display: flex;
+  gap: 1rem;
+}
+
+/* La casilla va a la izquierda del rótulo, con la ayuda debajo del texto */
+.admin label.check-field {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.2rem 0.6rem;
+  cursor: pointer;
+  flex: none;
+}
+
+.check-field input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #5c3317;
+  cursor: pointer;
+}
+
+.check-field .hint {
+  grid-column: 2;
+}
+
+/* ---------- Pestaña Textos ---------- */
+
+.pane {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1.8rem 0 3rem;
+}
+
+.text-pane {
+  max-width: 860px;
+}
+
+/* ---------- Pestaña Fotografías: lista + detalle ---------- */
+
+.photos-layout {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 2rem;
+}
+
+.photos-list-pane {
+  flex: 0 0 33%;
+  min-width: 260px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid var(--line);
+  padding: 1.2rem 1.5rem 1rem 0;
+}
+
+.add-btn {
+  flex-shrink: 0;
+  background: none;
+  border: 1px solid var(--ink);
+  padding: 0.55rem 0.9rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.add-btn:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.photo-list {
+  list-style: none;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin-right: -0.4rem;
+  padding-right: 0.4rem;
+}
+
+.photo-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  background: none;
+  border: none;
+  border-left: 2px solid transparent;
+  padding: 0.55rem 0.5rem;
+  text-align: left;
+  font-family: inherit;
+  transition: background 0.12s ease;
+}
+
+.photo-row:hover {
+  background: rgba(0, 0, 0, 0.07);
+}
+
+.photo-row.selected {
+  background: rgba(0, 0, 0, 0.13);
+  border-left-color: var(--ink);
+}
+
+.thumb {
+  width: 52px;
+  height: 38px;
+  flex-shrink: 0;
+  background: #d8d8d8;
+  overflow: hidden;
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(1);
+}
+
+.photo-row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.photo-row.selected .photo-row-title {
+  font-weight: 600;
+}
+
+.photo-row-title {
+  font-size: 0.85rem;
+  color: var(--ink);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.photo-row-date {
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.row-featured {
+  color: #5c3317;
+}
+
+.photo-detail-pane {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1.2rem 0 3rem;
+}
+
+.empty-detail {
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding-top: 2rem;
+}
+
+/* ---------- Formulario de foto ---------- */
+
+.photo-form-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 1.4rem;
+}
+
+.photo-form-head h2 {
+  margin-bottom: 0;
+}
+
+.photo-form-cols {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.photo-form-fields {
+  flex: 1.1;
+  min-width: 0;
+}
+
+.photo-form-side {
+  flex: 1;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.image-box {
+  border: 1px solid var(--line);
+  background: #d8d8d8;
+  aspect-ratio: 4 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.image-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(1);
+}
+
+.image-placeholder {
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.upload-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ink);
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  margin-bottom: 0 !important;
+  color: var(--ink) !important;
+}
+
+.upload-btn:hover {
+  background: var(--ink);
+  color: var(--paper) !important;
+}
+
+.admin-map {
+  height: 240px;
+  border: 1px solid var(--line);
+  cursor: crosshair;
+}
+
+.admin-map .maplibregl-canvas {
+  filter: grayscale(1);
+}
+
+.delete-btn {
+  flex-shrink: 0;
+  background: none;
+  border: 1px solid #a01c1c;
+  color: #a01c1c;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.delete-btn:hover {
+  background: #a01c1c;
+  color: #fff;
+}
+
+@media (max-width: 900px) {
+  .admin {
+    padding: 1.5rem 1.2rem 0;
+  }
+  .photos-layout {
+    flex-direction: column;
+    gap: 0;
+  }
+  .photos-list-pane {
+    flex: 0 0 auto;
+    max-height: 38%;
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+    padding: 1rem 0;
+  }
+  .photo-form-cols,
+  .field-row {
+    flex-direction: column;
+    gap: 0;
+  }
+  .photo-form-cols {
+    gap: 1.2rem;
+  }
+  .photo-form-side {
+    max-width: none;
+  }
+}
