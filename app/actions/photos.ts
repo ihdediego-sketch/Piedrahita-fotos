@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { PHOTO_BUCKET, defaultDateLabel, slugify } from "@/lib/photos";
 import { TIMELINE_MAX, TIMELINE_MIN } from "@/lib/photos";
-import type { PhotoStatus, Role } from "@/lib/types";
+import type { PhotoStatus, Role, SiteContent } from "@/lib/types";
 
 export type Result = { ok: true; slug?: string } | { ok: false; error: string };
 
@@ -169,12 +169,7 @@ export async function deletePhoto(id: string): Promise<Result> {
   return { ok: true };
 }
 
-export async function saveSiteContent(input: {
-  title: string;
-  subtitle: string;
-  metaTitle: string;
-  metaDescription: string;
-}): Promise<Result> {
+export async function saveSiteContent(input: SiteContent): Promise<Result> {
   if (!input.title.trim()) return { ok: false, error: "Falta el título." };
 
   const supabase = await createClient();
@@ -185,6 +180,10 @@ export async function saveSiteContent(input: {
       subtitle: input.subtitle.trim(),
       meta_title: input.metaTitle.trim(),
       meta_description: input.metaDescription.trim(),
+      login_title: input.loginTitle.trim(),
+      login_intro: input.loginIntro.trim(),
+      submit_title: input.submitTitle.trim(),
+      submit_intro: input.submitIntro.trim(),
     })
     .eq("id", true)
     .select("id")

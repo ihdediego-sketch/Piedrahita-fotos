@@ -76,14 +76,77 @@ export type SiteContent = {
   subtitle: string;
   metaTitle: string;
   metaDescription: string;
+  loginTitle: string;
+  loginIntro: string;
+  submitTitle: string;
+  submitIntro: string;
 };
+
+export type SiteTextField = {
+  key: keyof SiteContent;
+  label: string;
+  /** Texto largo: se edita en un área en vez de en una línea. */
+  long?: boolean;
+};
+
+/** Los textos del panel, agrupados por la pantalla en la que se leen. */
+export const SITE_TEXT_GROUPS: {
+  title: string;
+  note: string;
+  fields: SiteTextField[];
+}[] = [
+  {
+    title: "Cabecera del mapa",
+    note: "Lo primero que se ve al entrar, sobre el mapa.",
+    fields: [
+      { key: "title", label: "Título" },
+      { key: "subtitle", label: "Subtítulo" },
+    ],
+  },
+  {
+    title: "Pestaña del navegador y buscadores",
+    note: "No se ve en la página: es lo que muestran Google y la pestaña.",
+    fields: [
+      { key: "metaTitle", label: "Título (SEO)" },
+      { key: "metaDescription", label: "Descripción (SEO)", long: true },
+    ],
+  },
+  {
+    title: "Pantalla de acceso",
+    note: "La página de entrar, la primera que lee quien aún no tiene cuenta.",
+    fields: [
+      { key: "loginTitle", label: "Titular" },
+      { key: "loginIntro", label: "Explicación", long: true },
+    ],
+  },
+  {
+    title: "Enviar una fotografía",
+    note: "La página desde la que cualquiera aporta una foto al archivo.",
+    fields: [
+      { key: "submitTitle", label: "Titular" },
+      {
+        key: "submitIntro",
+        label: "Aviso de revisión (solo lo ven quienes no publican)",
+        long: true,
+      },
+    ],
+  },
+];
 
 /** Quién está mirando: se pasa a los componentes cliente para decidir qué ofrecer. */
 export type Viewer = {
   id: string;
   displayName: string;
+  bio: string;
+  /** Ruta dentro del bucket `avatars`. Vacía si no ha puesto foto. */
+  avatarPath: string;
+  /** URL pública del avatar, ya resuelta. Vacía si no hay. */
+  avatar: string;
   role: Role;
 } | null;
+
+/** Tope del texto «sobre mí», igual que el check de la base de datos. */
+export const BIO_MAX = 600;
 
 export const isStaff = (viewer: Viewer) =>
   viewer?.role === "admin" || viewer?.role === "colaborador";
@@ -96,16 +159,20 @@ export const ROLE_LABELS: Record<Role, string> = {
   usuario: "Usuario registrado",
 };
 
+export const ROLE_LABELS_PLURAL: Record<Role, string> = {
+  admin: "Administradores",
+  colaborador: "Colaboradores",
+  usuario: "Usuarios registrados",
+};
+
 export const STATUS_LABELS: Record<PhotoStatus, string> = {
   pending: "Pendiente",
   published: "Publicada",
-  rejected: "Rechazada",
+  rejected: "Descartada",
 };
-  bio: string;
-  /** Ruta dentro del bucket `avatars`. Vacía si no ha puesto foto. */
-  avatarPath: string;
-  /** URL pública del avatar, ya resuelta. Vacía si no hay. */
-  avatar: string;
-/** Tope del texto «sobre mí», igual que el check de la base de datos. */
-export const BIO_MAX = 600;
 
+export const STATUS_LABELS_PLURAL: Record<PhotoStatus, string> = {
+  pending: "Pendientes",
+  published: "Publicadas",
+  rejected: "Descartadas",
+};

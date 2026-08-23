@@ -884,3 +884,95 @@
     max-width: 15rem;
   }
 }
+
+/* ---------- Filtros de lista ----------
+   Los mismos chips para el estado de las fotografías y el tipo de persona:
+   son la misma acción —acotar una lista larga— y conviene que se lean igual. */
+
+.filter-row {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0.9rem 0 1rem;
+}
+
+.filter-chip {
+  height: auto;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: none;
+  color: var(--ink-soft);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.filter-chip:hover:not(:disabled) {
+  border-color: var(--ink);
+  color: var(--ink);
+  background: none;
+}
+
+.filter-chip.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper-solid);
+}
+
+/* Cuenta de pendientes junto a la pestaña: la cola de revisión ya no tiene
+   pestaña propia, así que el aviso tiene que viajar con Fotografías. */
+.tab-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.15rem;
+  height: 1.15rem;
+  margin-left: 0.4rem;
+  padding: 0 0.25rem;
+  border-radius: 999px;
+  background: var(--warning);
+  color: var(--paper-solid);
+  font-size: 0.62rem;
+  letter-spacing: 0;
+}
+
+/* ---------- Textos, agrupados por pantalla ---------- */
+
+.text-group {
+  padding-top: 1.4rem;
+  margin-top: 1.4rem;
+  border-top: 1px solid var(--line);
+}
+
+.text-group:first-of-type {
+  padding-top: 0;
+  margin-top: 0;
+  border-top: none;
+}
+
+.text-group h3 {
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.text-group > .hint {
+  margin: 0.25rem 0 0.9rem;
+  max-width: 62ch;
+}
+
+/* El menú de usuario es fijo sobre el mapa; dentro del panel vive en la
+   cabecera, así que aquí fluye con el resto de acciones. */
+.admin-header .user-menu {
+  position: relative;
+  top: auto;
+  right: auto;
+}
+
+/* La cabecera va antes que el resto en el DOM: sin esto el desplegable queda
+   por debajo de la lista de fotografías. */
+.admin-header .user-dropdown {
+  z-index: 30;
+}

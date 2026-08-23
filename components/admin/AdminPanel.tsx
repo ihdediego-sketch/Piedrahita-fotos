@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Check, Circle, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import UserMenu from "@/components/UserMenu";
 import PhotoFields, {
   emptyDraft,
   toDraft,
@@ -21,7 +23,10 @@ import {
 import { defaultDateLabel } from "@/lib/photos";
 import {
   ROLE_LABELS,
+  ROLE_LABELS_PLURAL,
+  SITE_TEXT_GROUPS,
   STATUS_LABELS,
+  STATUS_LABELS_PLURAL,
   isAdmin,
   type Photo,
   type PhotoStatus,
@@ -32,9 +37,14 @@ import {
 } from "@/lib/types";
 import "./admin.css";
 
-type Tab = "pendientes" | "fotos" | "textos" | "personas";
+type Tab = "fotos" | "textos" | "personas";
+
+/** «todas» / «todos»: el filtro apagado, sin estado ni rol elegido. */
+type PhotoFilter = PhotoStatus | "todas";
+type PeopleFilter = Role | "todos";
 
 const ROLES: Role[] = ["usuario", "colaborador", "admin"];
+const PHOTO_FILTERS: PhotoStatus[] = ["published", "pending", "rejected"];
 
 export default function AdminPanel({
   viewer,
@@ -51,22 +61,33 @@ export default function AdminPanel({
   const admin = isAdmin(viewer);
 
   const pending = photos.filter((p) => p.status === "pending");
-  const rest = photos.filter((p) => p.status !== "pending");
 
-  const [tab, setTab] = useState<Tab>(
-    pending.length > 0 ? "pendientes" : "fotos"
+  const [tab, setTab] = useState<Tab>("fotos");
+  // Si hay cola de revisión se abre por ella: es lo que trae aquí a un
+  // colaborador. Con todo al día, la lista entera.
+  const [photoFilter, setPhotoFilter] = useState<PhotoFilter>(
+    pending.length > 0 ? "pending" : "todas"
   );
+  const [peopleFilter, setPeopleFilter] = useState<PeopleFilter>("todos");
   const [draft, setDraft] = useState<Draft | null>(null);
   const [siteDraft, setSiteDraft] = useState(site);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [busy, startTransition] = useTransition();
 
-  const siteDirty =
-    siteDraft.title !== site.title ||
-    siteDraft.subtitle !== site.subtitle ||
-    siteDraft.metaTitle !== site.metaTitle ||
-    siteDraft.metaDescription !== site.metaDescription;
+  const visiblePhotos =
+    photoFilter === "todas"
+      ? photos
+      : photos.filter((p) => p.status === photoFilter);
+
+  const visibleProfiles =
+    peopleFilter === "todos"
+      ? profiles
+      : profiles.filter((p) => p.role === peopleFilter);
+
+  const siteDirty = (
+    Object.keys(site) as (keyof SiteContent)[]
+  ).some((k) => siteDraft[k] !== site[k]);
 
   // Los datos llegan del servidor: tras refrescar hay que soltar el borrador
   // de textos para no quedarse con el valor viejo marcado como sucio.
@@ -102,7 +123,7 @@ export default function AdminPanel({
   const moderate = (photo: Photo, status: PhotoStatus) => {
     const note =
       status === "rejected"
-        ? (prompt(`Motivo del rechazo de «${photo.title}» (opcional):`) ?? "")
+        ? (prompt(`Motivo del descarte de «${photo.title}» (opcional):`) ?? "")
         : "";
     run(() => setPhotoStatus(photo.id, status, note));
   };
@@ -116,7 +137,38 @@ export default function AdminPanel({
     });
   };
 
-  const photoRow = (p: Photo, extra?: React.ReactNode) => (
+  /** Los botones de moderación de una fila, según lo que falte por hacer. */
+  const rowActions = (p: Photo) => {
+    if (p.status === "published") return null;
+    return (
+      <span className="row-actions">
+        <Button
+          variant="ghost"
+          className="approve-btn"
+          title="Aprobar y publicar"
+          aria-label="Aprobar"
+          disabled={busy}
+          onClick={() => moderate(p, "published")}
+        >
+          <Check aria-hidden size={14} strokeWidth={2} />
+        </Button>
+        {p.status === "pending" && (
+          <Button
+            variant="ghost"
+            className="reject-btn"
+            title="Descartar"
+            aria-label="Descartar"
+            disabled={busy}
+            onClick={() => moderate(p, "rejected")}
+          >
+            <X aria-hidden size={14} strokeWidth={2} />
+          </Button>
+        )}
+      </span>
+    );
+  };
+
+  const photoRow = (p: Photo) => (
     <li key={p.id}>
       <Button
         variant="ghost"
@@ -145,9 +197,14 @@ export default function AdminPanel({
           )}
         </span>
       </Button>
-      {extra}
+      {rowActions(p)}
     </li>
   );
+
+  const emptyNote =
+    photoFilter === "pending"
+      ? "Nada por revisar. Todo al día."
+      : "No hay fotografías con este filtro.";
 
   return (
     <main className="admin">
@@ -156,7 +213,7 @@ export default function AdminPanel({
           <Link href="/" className="back-link">
             <ArrowLeft aria-hidden size={14} strokeWidth={1.8} /> Volver al mapa
           </Link>
-          <h1>Piedrahíta · Panel</h1>
+          <h1>Panel de control</h1>
         </div>
         <div className="admin-actions">
           {saved && (
@@ -164,7 +221,7 @@ export default function AdminPanel({
               Guardado <Check aria-hidden size={13} strokeWidth={2} />
             </span>
           )}
-          <span className="user-role">{viewer?.displayName}</span>
+          <UserMenu viewer={viewer} />
         </div>
       </header>
 
@@ -172,20 +229,16 @@ export default function AdminPanel({
         <Button
           variant="ghost"
           role="tab"
-          aria-selected={tab === "pendientes"}
-          className={tab === "pendientes" ? "active" : ""}
-          onClick={() => setTab("pendientes")}
-        >
-          Pendientes ({pending.length})
-        </Button>
-        <Button
-          variant="ghost"
-          role="tab"
           aria-selected={tab === "fotos"}
           className={tab === "fotos" ? "active" : ""}
           onClick={() => setTab("fotos")}
         >
-          Fotografías ({rest.length})
+          Fotografías ({photos.length})
+          {pending.length > 0 && (
+            <span className="tab-badge" title="Pendientes de revisar">
+              {pending.length}
+            </span>
+          )}
         </Button>
         {admin && (
           <Button
@@ -213,54 +266,45 @@ export default function AdminPanel({
 
       {error && <p className="admin-error">{error}</p>}
 
-      {(tab === "pendientes" || tab === "fotos") && (
+      {tab === "fotos" && (
         <div className="photos-layout">
           <aside className="photos-list-pane">
-            {tab === "fotos" && (
+            <Button
+              variant="ghost"
+              className="add-btn"
+              onClick={() => setDraft({ ...emptyDraft(), status: "published" })}
+            >
+              <Plus aria-hidden size={13} strokeWidth={2} /> Añadir fotografía
+            </Button>
+
+            <div className="filter-row" role="group" aria-label="Filtrar por estado">
               <Button
                 variant="ghost"
-                className="add-btn"
-                onClick={() => setDraft({ ...emptyDraft(), status: "published" })}
+                className={`filter-chip${photoFilter === "todas" ? " active" : ""}`}
+                aria-pressed={photoFilter === "todas"}
+                onClick={() => setPhotoFilter("todas")}
               >
-                <Plus aria-hidden size={13} strokeWidth={2} /> Añadir fotografía
+                Todas ({photos.length})
               </Button>
+              {PHOTO_FILTERS.map((status) => (
+                <Button
+                  key={status}
+                  variant="ghost"
+                  className={`filter-chip${photoFilter === status ? " active" : ""}`}
+                  aria-pressed={photoFilter === status}
+                  onClick={() => setPhotoFilter(status)}
+                >
+                  {STATUS_LABELS_PLURAL[status]} (
+                  {photos.filter((p) => p.status === status).length})
+                </Button>
+              ))}
+            </div>
+
+            {visiblePhotos.length === 0 && (
+              <p className="hint pane-note">{emptyNote}</p>
             )}
 
-            {tab === "pendientes" && pending.length === 0 && (
-              <p className="hint pane-note">Nada por revisar. Todo al día.</p>
-            )}
-
-            <ul className="photo-list">
-              {(tab === "pendientes" ? pending : rest).map((p) =>
-                photoRow(
-                  p,
-                  tab === "pendientes" ? (
-                    <span className="row-actions">
-                      <Button
-                        variant="ghost"
-                        className="approve-btn"
-                        title="Aprobar y publicar"
-                        aria-label="Aprobar"
-                        disabled={busy}
-                        onClick={() => moderate(p, "published")}
-                      >
-                        <Check aria-hidden size={14} strokeWidth={2} />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        className="reject-btn"
-                        title="Rechazar"
-                        aria-label="Rechazar"
-                        disabled={busy}
-                        onClick={() => moderate(p, "rejected")}
-                      >
-                        <X aria-hidden size={14} strokeWidth={2} />
-                      </Button>
-                    </span>
-                  ) : null
-                )
-              )}
-            </ul>
+            <ul className="photo-list">{visiblePhotos.map(photoRow)}</ul>
           </aside>
 
           <section className="photo-detail-pane">
@@ -349,66 +393,79 @@ export default function AdminPanel({
               {busy ? "Guardando…" : "Guardar cambios"}
             </Button>
           </div>
-          <div className="field-row">
-            <label>
-              Título
-              <Input
-                type="text"
-                value={siteDraft.title}
-                onChange={(e) =>
-                  setSiteDraft({ ...siteDraft, title: e.target.value })
-                }
-              />
-            </label>
-            <label>
-              Subtítulo
-              <Input
-                type="text"
-                value={siteDraft.subtitle}
-                onChange={(e) =>
-                  setSiteDraft({ ...siteDraft, subtitle: e.target.value })
-                }
-              />
-            </label>
-          </div>
-          <div className="field-row">
-            <label>
-              Título de la pestaña (SEO)
-              <Input
-                type="text"
-                value={siteDraft.metaTitle}
-                onChange={(e) =>
-                  setSiteDraft({ ...siteDraft, metaTitle: e.target.value })
-                }
-              />
-            </label>
-            <label>
-              Descripción (SEO)
-              <Input
-                type="text"
-                value={siteDraft.metaDescription}
-                onChange={(e) =>
-                  setSiteDraft({
-                    ...siteDraft,
-                    metaDescription: e.target.value,
-                  })
-                }
-              />
-            </label>
-          </div>
+
+          {SITE_TEXT_GROUPS.map((group) => (
+            <section key={group.title} className="text-group">
+              <h3>{group.title}</h3>
+              <p className="hint">{group.note}</p>
+              <div className="field-row">
+                {group.fields.map((field) => (
+                  <label key={field.key}>
+                    {field.label}
+                    {field.long ? (
+                      <Textarea
+                        rows={3}
+                        value={siteDraft[field.key]}
+                        onChange={(e) =>
+                          setSiteDraft({
+                            ...siteDraft,
+                            [field.key]: e.target.value,
+                          })
+                        }
+                      />
+                    ) : (
+                      <Input
+                        type="text"
+                        value={siteDraft[field.key]}
+                        onChange={(e) =>
+                          setSiteDraft({
+                            ...siteDraft,
+                            [field.key]: e.target.value,
+                          })
+                        }
+                      />
+                    )}
+                  </label>
+                ))}
+              </div>
+            </section>
+          ))}
         </div>
       )}
 
       {tab === "personas" && admin && (
         <div className="pane">
           <h2>Personas</h2>
-          <p className="hint pane-note">
-            Un <strong>colaborador</strong> publica fotos y textos y aprueba lo
-            que envían los demás. Un <strong>usuario registrado</strong> puede
-            enviar fotos —quedan pendientes—, dar me gusta y comentar.
-          </p>
+
+          <div className="filter-row" role="group" aria-label="Filtrar por tipo">
+            <Button
+              variant="ghost"
+              className={`filter-chip${peopleFilter === "todos" ? " active" : ""}`}
+              aria-pressed={peopleFilter === "todos"}
+              onClick={() => setPeopleFilter("todos")}
+            >
+              Todos ({profiles.length})
+            </Button>
+            {ROLES.map((role) => (
+              <Button
+                key={role}
+                variant="ghost"
+                className={`filter-chip${peopleFilter === role ? " active" : ""}`}
+                aria-pressed={peopleFilter === role}
+                onClick={() => setPeopleFilter(role)}
+              >
+                {ROLE_LABELS_PLURAL[role]} (
+                {profiles.filter((p) => p.role === role).length})
+              </Button>
+            ))}
+          </div>
+
+          {visibleProfiles.length === 0 && (
+            <p className="hint pane-note">No hay nadie con este tipo.</p>
+          )}
+
           <ul className="people-list">
-            {profiles.map((p) => (
+            {visibleProfiles.map((p) => (
               <li key={p.id}>
                 <span className="person-name">
                   {p.display_name || "(sin nombre)"}

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { X } from "lucide-react";
-import { getViewer } from "@/lib/data";
+import { getSiteContent, getViewer } from "@/lib/data";
 import LoginForm from "./LoginForm";
 import "@/components/admin/admin.css";
 
@@ -13,7 +13,7 @@ export default async function EntrarPage({
   searchParams: Promise<{ next?: string; error?: string }>;
 }) {
   const { next, error } = await searchParams;
-  const viewer = await getViewer();
+  const [viewer, site] = await Promise.all([getViewer(), getSiteContent()]);
   if (viewer) redirect(next && next.startsWith("/") ? next : "/");
 
   return (
@@ -22,11 +22,8 @@ export default async function EntrarPage({
         <Link href="/" className="auth-close" aria-label="Cerrar y volver al inicio">
           <X aria-hidden size={18} strokeWidth={1.8} />
         </Link>
-        <h1>Entrar</h1>
-        <p className="hint">
-          Pon tu correo y te mandamos un enlace para entrar. Si no tienes
-          cuenta, se crea sola.
-        </p>
+        <h1>{site.loginTitle}</h1>
+        <p className="hint">{site.loginIntro}</p>
         {error && <p className="admin-error">{error}</p>}
         <LoginForm next={next ?? "/"} />
       </div>

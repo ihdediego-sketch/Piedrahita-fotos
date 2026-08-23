@@ -8,15 +8,22 @@ import { Button } from "@/components/ui/button";
 import PhotoFields, { emptyDraft, toDraft, type Draft } from "@/components/PhotoEditor";
 import { deletePhoto, savePhoto } from "@/app/actions/photos";
 import { defaultDateLabel } from "@/lib/photos";
-import { STATUS_LABELS, type Photo, type Viewer } from "@/lib/types";
+import {
+  STATUS_LABELS,
+  type Photo,
+  type SiteContent,
+  type Viewer,
+} from "@/lib/types";
 
 export default function SubmitPhoto({
   viewer,
   mine,
+  site,
   canPublish,
 }: {
   viewer: Viewer;
   mine: Photo[];
+  site: SiteContent;
   canPublish: boolean;
 }) {
   const router = useRouter();
@@ -66,7 +73,7 @@ export default function SubmitPhoto({
           <Link href="/" className="back-link">
             <ArrowLeft aria-hidden size={14} strokeWidth={1.8} /> Volver al mapa
           </Link>
-          <h1>{editing ? "Editar tu fotografía" : "Enviar una fotografía"}</h1>
+          <h1>{editing ? "Editar tu fotografía" : site.submitTitle}</h1>
         </div>
         <div className="admin-actions">
           {done && (
@@ -91,11 +98,8 @@ export default function SubmitPhoto({
         </div>
       </header>
 
-      {!canPublish && (
-        <p className="hint pane-note">
-          Tu fotografía no aparecerá en el mapa hasta que un colaborador la
-          apruebe. Mientras esté pendiente puedes seguir editándola.
-        </p>
+      {!canPublish && site.submitIntro && (
+        <p className="hint pane-note">{site.submitIntro}</p>
       )}
 
       {error && <p className="admin-error">{error}</p>}

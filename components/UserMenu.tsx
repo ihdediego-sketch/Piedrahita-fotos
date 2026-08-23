@@ -69,7 +69,7 @@ export default function UserMenu({ viewer }: { viewer: Viewer }) {
           {isStaff(viewer) && (
             <Link href="/admin" role="menuitem" onClick={() => setOpen(false)}>
               <Settings aria-hidden size={14} strokeWidth={1.7} />
-              Panel
+              Panel de control
             </Link>
           )}
           <form action={signOut}>

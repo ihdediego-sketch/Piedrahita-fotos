@@ -20,6 +20,12 @@ const FALLBACK_SITE: SiteContent = {
   metaTitle: "Piedrahíta — Memoria visual",
   metaDescription:
     "Archivo fotográfico e histórico de Piedrahíta (Ávila), de 1800 a la actualidad, sobre un mapa interactivo.",
+  loginTitle: "Entrar",
+  loginIntro:
+    "Pon tu correo y te mandamos un enlace para entrar. Si no tienes cuenta, se crea sola.",
+  submitTitle: "Enviar una fotografía",
+  submitIntro:
+    "Tu fotografía no aparecerá en el mapa hasta que un colaborador la apruebe. Mientras esté pendiente puedes seguir editándola.",
 };
 
 /** Quién está mirando, con su rol. `null` si no ha iniciado sesión. */
@@ -41,26 +47,30 @@ export async function getViewer(): Promise<Viewer> {
   return {
     id: user.id,
     displayName: data?.display_name || user.email?.split("@")[0] || "",
+    bio: data?.bio ?? "",
+    avatarPath: data?.avatar_path ?? "",
+    avatar: avatarUrl(data?.avatar_path ?? ""),
     role: (data?.role as Role) ?? "usuario",
   };
 }
 
 export async function getSiteContent(): Promise<SiteContent> {
   const supabase = await createClient();
-    bio: data?.bio ?? "",
-    avatarPath: data?.avatar_path ?? "",
-    avatar: avatarUrl(data?.avatar_path ?? ""),
-  const { data } = await supabase
-    .from("site_content")
-    .select("title, subtitle, meta_title, meta_description")
-    .single();
+  // `*` y no la lista de columnas: así, si la migración de un texto nuevo aún
+  // no se ha ejecutado, se cae al valor por defecto de ese campo en vez de
+  // perder toda la fila.
+  const { data } = await supabase.from("site_content").select("*").single();
 
   if (!data) return FALLBACK_SITE;
   return {
-    title: data.title,
-    subtitle: data.subtitle,
-    metaTitle: data.meta_title,
-    metaDescription: data.meta_description,
+    title: data.title ?? FALLBACK_SITE.title,
+    subtitle: data.subtitle ?? FALLBACK_SITE.subtitle,
+    metaTitle: data.meta_title ?? FALLBACK_SITE.metaTitle,
+    metaDescription: data.meta_description ?? FALLBACK_SITE.metaDescription,
+    loginTitle: data.login_title ?? FALLBACK_SITE.loginTitle,
+    loginIntro: data.login_intro ?? FALLBACK_SITE.loginIntro,
+    submitTitle: data.submit_title ?? FALLBACK_SITE.submitTitle,
+    submitIntro: data.submit_intro ?? FALLBACK_SITE.submitIntro,
   };
 }
 

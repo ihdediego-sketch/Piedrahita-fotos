@@ -4,7 +4,7 @@ import { getManagedPhotos, getProfiles, getSiteContent, getViewer } from "@/lib/
 import { isAdmin, isStaff } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Piedrahíta — Panel" };
+export const metadata = { title: "Piedrahíta — Panel de control" };
 
 export default async function AdminPage() {
   const viewer = await getViewer();
