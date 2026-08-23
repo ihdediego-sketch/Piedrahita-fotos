@@ -30,6 +30,14 @@ export default function PhotoModal({ photo, onClose }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fullscreen]);
 
+  const extension = photo.image.split("?")[0].split(".").pop() ?? "jpg";
+  const downloadName = `${photo.title
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")}.${extension}`;
+
   return (
     <div
       className={`modal-backdrop${closing ? " closing" : ""}${
@@ -60,6 +68,16 @@ export default function PhotoModal({ photo, onClose }: Props) {
         >
           {fullscreen ? "⤡" : "⤢"}
         </button>
+        <a
+          className="modal-download"
+          href={photo.image}
+          download={downloadName}
+          onClick={(e) => e.stopPropagation()}
+          aria-label="Descargar imagen"
+          title="Descargar imagen"
+        >
+          ↓
+        </a>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={photo.image} alt={photo.title} />
         <div className="modal-body">

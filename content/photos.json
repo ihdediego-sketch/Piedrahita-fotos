@@ -1,8 +1,20 @@
 [
   {
+    "id": "ruinas-del-palacio-de-los-duques-de-alba",
+    "title": "Ruinas del Palacio del Duque de Alba",
+    "description": "Construido entre 1755 y 1766 por el arquitecto francés Jacques Marquet para el XII duque de Alba, el palacio fue incendiado y saqueado por el ejército napoleónico durante la guerra de la Independencia. Esta fotografía muestra su aspecto en los primeros años del S. XX. Podemos observar las grandes chimeneas, hoy desaparecidas y cómo los terrenos circundantes se estaban empleando como tierras de cultivo.",
+    "lat": 40.46125,
+    "lng": -5.32583,
+    "yearFrom": 1880,
+    "yearTo": 1910,
+    "dateLabel": "1900-1901",
+    "image": "/photos/ruinas-del-palacio-de-los-duques-de-alba.jpg",
+    "featured": false
+  },
+  {
     "id": "plaza-de-espana-1890",
     "title": "Plaza de España 1890",
-    "description": "",
+    "description": "La actual Plaza de España",
     "lat": 40.4636,
     "lng": -5.32786,
     "yearFrom": 1880,

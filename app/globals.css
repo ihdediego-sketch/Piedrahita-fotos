@@ -422,6 +422,31 @@ div.map-root,
   color: var(--paper);
 }
 
+.modal-download {
+  position: absolute;
+  z-index: 2;
+  top: 0.8rem;
+  right: 5.4rem;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 1rem;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.modal-download:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
 /* ---------- Modal: solo imagen a pantalla completa ---------- */
 
 .modal-backdrop.fullscreen {
@@ -458,14 +483,16 @@ div.map-root,
 }
 
 .modal-backdrop.fullscreen .modal-close,
-.modal-backdrop.fullscreen .modal-expand {
+.modal-backdrop.fullscreen .modal-expand,
+.modal-backdrop.fullscreen .modal-download {
   background: transparent;
   border-color: rgba(250, 250, 250, 0.6);
   color: var(--paper);
 }
 
 .modal-backdrop.fullscreen .modal-close:hover,
-.modal-backdrop.fullscreen .modal-expand:hover {
+.modal-backdrop.fullscreen .modal-expand:hover,
+.modal-backdrop.fullscreen .modal-download:hover {
   background: var(--paper);
   color: var(--ink);
 }
