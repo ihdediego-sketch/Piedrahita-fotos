@@ -45,7 +45,6 @@ import {
   ROLE_LABELS,
   ROLE_LABELS_PLURAL,
   SITE_TEXT_GROUPS,
-  STATUS_LABELS,
   STATUS_LABELS_PLURAL,
   isAdmin,
   type Photo,
@@ -59,8 +58,7 @@ import "./admin.css";
 
 type Tab = "fotos" | "textos" | "personas";
 
-/** «todas» / «todos»: el filtro apagado, sin estado ni rol elegido. */
-type PhotoFilter = PhotoStatus | "todas";
+/** «todos»: el filtro de personas apagado, sin rol elegido. */
 type PeopleFilter = Role | "todos";
 
 const ROLES: Role[] = ["usuario", "colaborador", "admin"];
@@ -84,9 +82,9 @@ export default function AdminPanel({
 
   const [tab, setTab] = useState<Tab>("fotos");
   // Si hay cola de revisión se abre por ella: es lo que trae aquí a un
-  // colaborador. Con todo al día, la lista entera.
-  const [photoFilter, setPhotoFilter] = useState<PhotoFilter>(
-    pending.length > 0 ? "pending" : "todas"
+  // colaborador. Con todo al día, las publicadas.
+  const [photoFilter, setPhotoFilter] = useState<PhotoStatus>(
+    pending.length > 0 ? "pending" : "published"
   );
   const [peopleFilter, setPeopleFilter] = useState<PeopleFilter>("todos");
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -160,10 +158,7 @@ export default function AdminPanel({
       [tabs.indexOf(next)]?.focus();
   };
 
-  const visiblePhotos =
-    photoFilter === "todas"
-      ? photos
-      : photos.filter((p) => p.status === photoFilter);
+  const visiblePhotos = photos.filter((p) => p.status === photoFilter);
 
   const visibleProfiles =
     peopleFilter === "todos"
@@ -279,21 +274,21 @@ export default function AdminPanel({
           {p.image && <img src={p.image} alt="" />}
         </span>
         <span className="photo-row-text">
-          <span className="photo-row-title">{p.title || "(sin título)"}</span>
-          <span className="photo-row-date">
+          <span className="photo-row-title">
             {p.featured && (
               <span className="row-featured" title="Hito relevante">
-                <Circle aria-hidden size={8} fill="currentColor" stroke="none" />
+                <Circle aria-hidden size={7} fill="currentColor" stroke="none" />
               </span>
             )}
-            <span className={`status-tag ${p.status}`}>
-              {STATUS_LABELS[p.status]}
-            </span>
-            {p.dateLabel || defaultDateLabel(p)}
+            {p.title || "(sin título)"}
           </span>
-          {p.authorName && (
-            <span className="hint">Aportada por {p.authorName}</span>
-          )}
+          <span className="photo-row-meta">
+            <span className={`status-dot ${p.status}`} aria-hidden />
+            {p.dateLabel || defaultDateLabel(p)}
+            {p.authorName && (
+              <span className="photo-row-author">· {p.authorName}</span>
+            )}
+          </span>
         </span>
       </Button>
       {rowActions(p)}
@@ -308,12 +303,49 @@ export default function AdminPanel({
   return (
     <main className="admin">
       <header className="admin-header">
-        <div>
+        <div className="admin-header-left">
           <Link href="/" className="back-link">
             <ArrowLeft aria-hidden size={14} strokeWidth={1.8} /> Volver al mapa
           </Link>
           <h1>Panel de control</h1>
         </div>
+
+        <nav
+          className="admin-tabs"
+          role="tablist"
+          ref={tabsRef}
+          onKeyDown={onTabKeyDown}
+        >
+          {marker && (
+            <span
+              aria-hidden
+              className="admin-tabs-marker"
+              style={{ transform: `translateX(${marker.left}px)`, width: marker.width }}
+            />
+          )}
+          {tabs.map(({ id, label, icon: Icon, count, badge }) => (
+            <Button
+              key={id}
+              variant="ghost"
+              role="tab"
+              tabIndex={tab === id ? 0 : -1}
+              aria-selected={tab === id}
+              data-tab-active={tab === id}
+              className={tab === id ? "active" : ""}
+              onClick={() => setTab(id)}
+            >
+              <Icon aria-hidden size={14} strokeWidth={1.8} />
+              {label}
+              {count !== undefined && <span className="tab-count">{count}</span>}
+              {badge !== undefined && badge > 0 && (
+                <span className="tab-badge" title="Pendientes de revisar">
+                  {badge}
+                </span>
+              )}
+            </Button>
+          ))}
+        </nav>
+
         <div className="admin-actions">
           {saved && (
             <span className="saved-note">
@@ -323,42 +355,6 @@ export default function AdminPanel({
           <UserMenu viewer={viewer} />
         </div>
       </header>
-
-      <nav
-        className="admin-tabs"
-        role="tablist"
-        ref={tabsRef}
-        onKeyDown={onTabKeyDown}
-      >
-        {marker && (
-          <span
-            aria-hidden
-            className="admin-tabs-marker"
-            style={{ transform: `translateX(${marker.left}px)`, width: marker.width }}
-          />
-        )}
-        {tabs.map(({ id, label, icon: Icon, count, badge }) => (
-          <Button
-            key={id}
-            variant="ghost"
-            role="tab"
-            tabIndex={tab === id ? 0 : -1}
-            aria-selected={tab === id}
-            data-tab-active={tab === id}
-            className={tab === id ? "active" : ""}
-            onClick={() => setTab(id)}
-          >
-            <Icon aria-hidden size={14} strokeWidth={1.8} />
-            {label}
-            {count !== undefined && <span className="tab-count">{count}</span>}
-            {badge !== undefined && badge > 0 && (
-              <span className="tab-badge" title="Pendientes de revisar">
-                {badge}
-              </span>
-            )}
-          </Button>
-        ))}
-      </nav>
 
       {error && <p className="admin-error">{error}</p>}
 
@@ -374,24 +370,20 @@ export default function AdminPanel({
             </Button>
 
             <div className="filter-row" role="group" aria-label="Filtrar por estado">
-              <Button
-                variant="ghost"
-                className={`filter-chip${photoFilter === "todas" ? " active" : ""}`}
-                aria-pressed={photoFilter === "todas"}
-                onClick={() => setPhotoFilter("todas")}
-              >
-                Todas ({photos.length})
-              </Button>
               {PHOTO_FILTERS.map((status) => (
                 <Button
                   key={status}
                   variant="ghost"
-                  className={`filter-chip${photoFilter === status ? " active" : ""}`}
+                  className={`filter-chip filter-chip-${status}${
+                    photoFilter === status ? " active" : ""
+                  }`}
                   aria-pressed={photoFilter === status}
                   onClick={() => setPhotoFilter(status)}
                 >
-                  {STATUS_LABELS_PLURAL[status]} (
-                  {photos.filter((p) => p.status === status).length})
+                  {STATUS_LABELS_PLURAL[status]}
+                  <span className="filter-count">
+                    {photos.filter((p) => p.status === status).length}
+                  </span>
                 </Button>
               ))}
             </div>
@@ -444,20 +436,6 @@ export default function AdminPanel({
                         {draft.status === "published" ? "Publicada" : "Oculta"}
                       </Button>
                     )}
-                    {draft.id && admin && (
-                      <Button
-                        variant="ghost"
-                        className="form-action delete-btn"
-                        disabled={busy}
-                        onClick={() => {
-                          const p = photos.find((x) => x.id === draft.id);
-                          if (p) remove(p);
-                        }}
-                      >
-                        <Trash2 aria-hidden size={15} strokeWidth={1.8} />
-                        Eliminar
-                      </Button>
-                    )}
                     {/* Sin cambios no hay nada que guardar: el botón sobra. */}
                     {draftDirty && (
                       <Button
@@ -480,6 +458,30 @@ export default function AdminPanel({
                     onChange={setDraft}
                     canFeature
                   />
+
+                  {draft.id && admin && (
+                    <section className="danger-zone">
+                      <h3>Zona de peligro</h3>
+                      <div className="danger-zone-row">
+                        <p className="hint">
+                          Elimina la fotografía y su información. No se puede
+                          deshacer.
+                        </p>
+                        <Button
+                          variant="ghost"
+                          className="form-action delete-btn"
+                          disabled={busy}
+                          onClick={() => {
+                            const p = photos.find((x) => x.id === draft.id);
+                            if (p) remove(p);
+                          }}
+                        >
+                          <Trash2 aria-hidden size={15} strokeWidth={1.8} />
+                          Eliminar fotografía
+                        </Button>
+                      </div>
+                    </section>
+                  )}
                 </div>
               </div>
             ) : (
