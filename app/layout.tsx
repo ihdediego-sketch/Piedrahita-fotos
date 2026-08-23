@@ -10,10 +10,11 @@ import { cn } from "@/lib/utils";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
+// Solo la usan el título del sitio (500) y el rango de años (400): no hace
+// falta cargar más pesos ni la itálica.
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
+  weight: ["400", "500"],
   variable: "--font-serif",
 });
 

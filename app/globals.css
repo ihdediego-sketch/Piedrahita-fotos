@@ -445,8 +445,15 @@ div.map-root,
   border-bottom: 1px solid var(--ink);
 }
 
+/* Hueco a la derecha para el aspa de cerrar, que va posicionada sobre esta
+   esquina del modal */
+.modal-head {
+  padding: 1.7rem 3.6rem 1.1rem 2rem;
+  border-bottom: 1px solid var(--line, #ddd);
+}
+
 .modal-body {
-  padding: 1.8rem 2rem 2.2rem;
+  padding: 1.4rem 2rem 2.2rem;
 }
 
 .modal-date {
@@ -454,7 +461,7 @@ div.map-root,
   letter-spacing: 0.28em;
   text-transform: uppercase;
   color: var(--ink-soft);
-  margin-bottom: 0.6rem;
+  margin-top: 0.55rem;
 }
 
 .modal-featured {
@@ -466,11 +473,9 @@ div.map-root,
 }
 
 .modal-title {
-  font-family: var(--font-serif), Georgia, serif;
-  font-size: 1.9rem;
+  font-size: 1.35rem;
   font-weight: 500;
-  line-height: 1.15;
-  margin-bottom: 1rem;
+  line-height: 1.2;
 }
 
 .modal-description {
@@ -582,6 +587,7 @@ div.map-root,
   border-bottom: none;
 }
 
+.modal-backdrop.fullscreen .modal-head,
 .modal-backdrop.fullscreen .modal-body {
   display: none;
 }
@@ -610,13 +616,19 @@ div.map-root,
 
 /* ---------- Modal: dos columnas en escritorio ---------- */
 
-/* Foto a la izquierda y texto a la derecha. La foto se ajusta al alto de la
-   ventana y es el texto el que hace scroll, no el modal entero. */
+/* Foto a la izquierda y texto a la derecha. El modal tiene un alto fijo —el de
+   la ventana— y es la columna de texto la que hace scroll dentro de él, no el
+   modal entero: así el aspa de cerrar y la foto se quedan siempre a la vista.
+   El alto es fijo (height, no max-height) a propósito: con solo max-height la
+   fila del grid se dimensiona por el contenido, se sale del modal y el
+   overflow: hidden recortaba los últimos comentarios sin poder llegar a ellos. */
 @media (min-width: 860px) {
   .modal-backdrop:not(.fullscreen) .modal {
     max-width: 1120px;
+    height: calc(100dvh - 3rem);
     display: grid;
     grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.85fr);
+    grid-template-rows: auto minmax(0, 1fr);
     overflow: hidden;
   }
 
@@ -624,24 +636,84 @@ div.map-root,
      así la botonera queda pegada a la imagen y no en la esquina del hueco que
      deja un texto largo. */
   .modal-backdrop:not(.fullscreen) .modal-figure {
+    grid-column: 1;
+    grid-row: 1 / span 2;
     align-self: center;
     justify-self: center;
     min-height: 0;
   }
 
+  .modal-backdrop:not(.fullscreen) .modal-head {
+    grid-column: 2;
+    grid-row: 1;
+    padding: 1.8rem 3.6rem 1.2rem 2.2rem;
+    border-left: 1px solid var(--ink);
+  }
+
+  /* En dvh y no en %: la figura no se estira (se ciñe a la foto para que la
+     botonera quede sobre ella), así que un % no tendría contra qué resolver.
+     Los 2px son los bordes del modal, que van por fuera de su alto. */
   .modal-backdrop:not(.fullscreen) .modal img {
     width: auto;
     max-width: 100%;
-    max-height: calc(100dvh - 3rem);
+    max-height: calc(100dvh - 3rem - 2px);
     border-bottom: none;
   }
 
-  /* La raya divisoria va en el texto, que sí ocupa todo el alto */
+  /* Bajo el título, dos franjas: el me gusta y la barra de comentar quietos
+     abajo, y en medio lo único que se mueve —descripción y comentarios—. */
+  .modal-backdrop:not(.fullscreen) .modal-body {
+    grid-column: 2;
+    grid-row: 2;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    overflow: hidden;
+    padding: 0;
+    border-left: 1px solid var(--ink);
+  }
+
+  .modal-backdrop:not(.fullscreen) .modal-scroll {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 1.6rem 2.2rem;
+  }
+
+  .modal-backdrop:not(.fullscreen) .modal-foot {
+    margin-top: 0;
+    padding: 1.2rem 2.2rem 1.6rem;
+  }
+}
+
+/* ---------- Modal: una columna ---------- */
+
+/* Título y foto quietos arriba, y debajo scrolla el resto. El que hace scroll
+   es el texto y no el modal entero: si scrollara el modal, el aspa de cerrar
+   —que va posicionada sobre él— se iría con el contenido y al bajar por una
+   descripción larga no habría forma de cerrar. */
+@media (max-width: 859px) {
+  .modal-backdrop:not(.fullscreen) .modal {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .modal-backdrop:not(.fullscreen) .modal-head,
+  .modal-backdrop:not(.fullscreen) .modal-figure {
+    flex: 0 0 auto;
+  }
+
+  /* La foto cede alto al texto en vez de comerse la pantalla entera */
+  .modal-backdrop:not(.fullscreen) .modal img {
+    max-height: 52dvh;
+    object-fit: contain;
+  }
+
   .modal-backdrop:not(.fullscreen) .modal-body {
     min-height: 0;
     overflow-y: auto;
-    padding: 2.2rem 2.2rem 2.4rem;
-    border-left: 1px solid var(--ink);
+    overscroll-behavior: contain;
   }
 }
 
@@ -658,6 +730,9 @@ div.map-root,
   .map-controls {
     right: 1.2rem;
   }
+  .modal-head {
+    padding: 1.2rem 3.2rem 1rem 1.3rem;
+  }
   .modal-body {
     padding: 1.3rem 1.3rem 1.6rem;
   }
@@ -668,29 +743,8 @@ div.map-root,
     padding: 2.6rem 0.4rem;
   }
 
-  /* El que hace scroll es el texto, no el modal entero. Si scrollara el modal,
-     el aspa de cerrar —que va posicionada sobre él— se iba con el contenido y
-     al bajar por una descripción larga no había forma de cerrar. */
   .modal-backdrop:not(.fullscreen) .modal {
     max-height: calc(100dvh - 5.2rem);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .modal-backdrop:not(.fullscreen) .modal-figure {
-    flex: 0 0 auto;
-  }
-
-  /* La foto cede alto al texto en vez de comerse la pantalla entera */
-  .modal-backdrop:not(.fullscreen) .modal img {
-    max-height: 52dvh;
-    object-fit: contain;
-  }
-
-  .modal-backdrop:not(.fullscreen) .modal-body {
-    min-height: 0;
-    overflow-y: auto;
   }
 }
 
@@ -902,13 +956,18 @@ div.map-root,
   color: var(--ink-soft);
 }
 
+/* La raya separadora la pone el pie, que es quien se queda fijo abajo */
+.modal-foot {
+  margin-top: 1.4rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--ink-soft);
+}
+
 .modal-social {
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin: 1.4rem 0 0.9rem;
-  padding-top: 1.2rem;
-  border-top: 1px solid var(--ink-soft);
+  margin-bottom: 0.9rem;
 }
 
 .like-btn {
@@ -949,7 +1008,12 @@ div.map-root,
   display: flex;
   flex-direction: column;
   gap: 1.1rem;
+  margin-top: 1.6rem;
   max-width: 58ch;
+}
+
+.comment-list:empty {
+  margin-top: 0;
 }
 
 .comment-list li {
@@ -1004,6 +1068,10 @@ div.map-root,
   max-width: 58ch;
 }
 
+/* Empieza en una línea y va creciendo con lo que se escribe hasta diez, que es
+   donde se para y hace scroll. El alto lo pone el componente en cada tecla, así
+   que field-sizing —que haría lo mismo pero solo en Chrome— se desactiva para
+   que no peleen. */
 .comment-form textarea {
   width: 100%;
   padding: 0.6rem 0.7rem;
@@ -1012,7 +1080,11 @@ div.map-root,
   font: inherit;
   font-size: 0.88rem;
   line-height: 1.5;
-  resize: vertical;
+  field-sizing: fixed;
+  min-height: 0;
+  max-height: calc(10 * 1.5 * 0.88rem + 1.2rem + 2px);
+  overflow-y: auto;
+  resize: none;
 }
 
 .comment-form .save-btn {
@@ -1031,6 +1103,47 @@ div.map-root,
 .comment-form .save-btn:disabled {
   opacity: 0.45;
   cursor: default;
+}
+
+/* La invitación que ve un visitante donde el registrado tiene el formulario
+   de comentarios. Ocupa el mismo hueco para que el salto no descoloque. */
+.join-cta {
+  margin-top: 1.3rem;
+  padding: 1.1rem 1.2rem;
+  max-width: 58ch;
+  border: 1px solid var(--ink-soft);
+  background: color-mix(in srgb, var(--ink) 3%, var(--paper));
+}
+
+/* Sin versales ni letra apretada: el visitante mayoritario del archivo es
+   gente del pueblo de cierta edad, y aquí prima leerlo de un vistazo. */
+.join-cta-title {
+  font-size: 1.05rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--ink);
+}
+
+.join-cta-body {
+  margin: 0.5rem 0 1rem;
+  font-size: 0.98rem;
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+.join-cta-link {
+  display: inline-block;
+  padding: 0.7rem 1.4rem;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 1rem;
+  text-decoration: none;
+}
+
+.join-cta-link:hover {
+  background: var(--paper);
+  color: var(--ink);
 }
 
 @media (max-width: 700px) {

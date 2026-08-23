@@ -13,7 +13,6 @@
 }
 
 .admin h1 {
-  font-family: var(--font-serif), Georgia, serif;
   font-size: 1.6rem;
   font-weight: 500;
   letter-spacing: 0.08em;
@@ -21,7 +20,6 @@
 }
 
 .admin h2 {
-  font-family: var(--font-serif), Georgia, serif;
   font-size: 1.25rem;
   font-weight: 500;
   margin-bottom: 1.1rem;
@@ -296,6 +294,7 @@
 .photo-row {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 0.85rem;
   width: 100%;
   height: auto;
@@ -746,34 +745,43 @@
 }
 
 .auth-card {
+  position: relative;
   width: min(26rem, 100%);
   padding: 2.2rem 2rem;
   background: #fff;
   border: 1px solid var(--ink);
 }
 
-.auth-brand {
-  display: block;
-  margin-bottom: 1.6rem;
-  font-family: var(--font-serif), Georgia, serif;
-  font-size: 0.8rem;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
+.auth-close {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.9rem;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
   color: var(--ink-soft);
   text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.auth-close:hover,
+.auth-close:focus-visible {
+  color: var(--ink);
 }
 
 .auth-card h1 {
-  font-family: var(--font-serif), Georgia, serif;
   font-size: 1.7rem;
   font-weight: 500;
   margin-bottom: 0.5rem;
 }
 
+/* Más grande y con más contraste que el resto de pistas del panel: esta la
+   lee gente que entra por primera vez, no un administrador. */
 .auth-card .hint {
-  font-size: 0.78rem;
-  color: var(--ink-soft);
-  line-height: 1.55;
+  font-size: 0.95rem;
+  color: var(--ink);
+  line-height: 1.6;
 }
 
 .auth-form {
@@ -786,27 +794,11 @@
 .auth-form label {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  font-size: 0.68rem;
-  letter-spacing: 0.12em;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--ink-soft);
-}
-
-.auth-form input {
-  padding: 0.6rem 0.7rem;
-  border: 1px solid var(--ink-soft);
-  background: #fff;
-  font-size: 0.95rem;
-  letter-spacing: normal;
-  text-transform: none;
-  color: var(--ink);
-}
-
-.auth-form .hint {
-  font-size: 0.7rem;
-  letter-spacing: normal;
-  text-transform: none;
 }
 
 .auth-sent {

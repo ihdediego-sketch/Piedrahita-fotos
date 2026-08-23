@@ -36,27 +36,15 @@ export default function LoginForm({ next }: { next: string }) {
     <form action={action} className="auth-form">
       <input type="hidden" name="next" value={next} />
       <label>
-        Correo electrónico
+        Correo
         <Input
           type="email"
           name="email"
           required
           autoComplete="email"
           placeholder="tunombre@correo.com"
+          className="h-11 text-base"
         />
-      </label>
-      <label>
-        Nombre
-        <Input
-          type="text"
-          name="display_name"
-          maxLength={60}
-          autoComplete="name"
-          placeholder="Cómo quieres que te vean"
-        />
-        <span className="hint">
-          Solo se usa la primera vez, para firmar tus comentarios.
-        </span>
       </label>
       {state.error && <p className="admin-error">{state.error}</p>}
       <SubmitButton />

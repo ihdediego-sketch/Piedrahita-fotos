@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { X } from "lucide-react";
 import { getViewer } from "@/lib/data";
 import LoginForm from "./LoginForm";
 import "@/components/admin/admin.css";
@@ -18,19 +19,16 @@ export default async function EntrarPage({
   return (
     <main className="auth-page">
       <div className="auth-card">
-        <Link href="/" className="auth-brand">
-          Piedrahíta
+        <Link href="/" className="auth-close" aria-label="Cerrar y volver al inicio">
+          <X aria-hidden size={18} strokeWidth={1.8} />
         </Link>
         <h1>Entrar</h1>
         <p className="hint">
-          Te enviamos un enlace al correo. No hay contraseña que recordar.
+          Pon tu correo y te mandamos un enlace para entrar. Si no tienes
+          cuenta, se crea sola.
         </p>
         {error && <p className="admin-error">{error}</p>}
         <LoginForm next={next ?? "/"} />
-        <p className="hint auth-foot">
-          Si es la primera vez, se te crea la cuenta al entrar. Podrás dar me
-          gusta, comentar y enviar fotografías al archivo.
-        </p>
       </div>
     </main>
   );

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
-import { Plus, Minus, Crosshair } from "lucide-react";
+import { Plus, Minus, Maximize } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { type Photo } from "@/lib/photos";
 import type { SiteContent, Viewer } from "@/lib/types";
@@ -12,7 +12,7 @@ import PhotoModal from "./PhotoModal";
 import UserMenu from "./UserMenu";
 import { TIMELINE_MIN, TIMELINE_MAX } from "@/lib/photos";
 
-const PIEDRAHITA: [number, number] = [-5.3238, 40.4619];
+const PIEDRAHITA: [number, number] = [-5.326398, 40.463383];
 const DEFAULT_ZOOM = 15.2;
 const MAX_ZOOM = 18.5;
 
@@ -486,7 +486,7 @@ export default function MapView({
             })
           }
         >
-          <Crosshair aria-hidden size={17} strokeWidth={1.6} />
+          <Maximize aria-hidden size={17} strokeWidth={1.6} />
         </Button>
       </div>
 
