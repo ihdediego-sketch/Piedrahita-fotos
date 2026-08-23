@@ -28,9 +28,10 @@ export default function UserMenu({ viewer }: { viewer: Viewer }) {
   if (!viewer) {
     return (
       <div className="user-menu">
-        <Link href="/entrar" className="user-chip">
+        <Link href="/entrar" className="user-chip user-chip-guest">
           <User aria-hidden size={15} strokeWidth={1.7} />
-          Entrar
+          <span className="user-chip-guest-full">Entrar / Registrarse</span>
+          <span className="user-chip-guest-short">Entrar</span>
         </Link>
       </div>
     );
