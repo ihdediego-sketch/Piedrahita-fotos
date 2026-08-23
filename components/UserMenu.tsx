@@ -78,23 +78,23 @@ export default function UserMenu({ viewer }: { viewer: Viewer }) {
           <div className="user-actions">
             {isStaff(viewer) && (
               <Link href="/admin" role="menuitem" onClick={() => setOpen(false)}>
-                <Settings aria-hidden size={15} strokeWidth={1.7} />
+                <Settings aria-hidden size={17} strokeWidth={1.7} />
                 Panel de control
               </Link>
             )}
             <Link href="/subir" role="menuitem" onClick={() => setOpen(false)}>
-              <ImagePlus aria-hidden size={15} strokeWidth={1.7} />
+              <ImagePlus aria-hidden size={17} strokeWidth={1.7} />
               Enviar una fotografía
             </Link>
             <Link href="/perfil" role="menuitem" onClick={() => setOpen(false)}>
-              <User aria-hidden size={15} strokeWidth={1.7} />
+              <User aria-hidden size={17} strokeWidth={1.7} />
               Editar perfil
             </Link>
           </div>
 
           <form action={signOut} className="user-exit">
             <button type="submit" role="menuitem">
-              <LogOut aria-hidden size={15} strokeWidth={1.7} />
+              <LogOut aria-hidden size={17} strokeWidth={1.7} />
               Salir
             </button>
           </form>

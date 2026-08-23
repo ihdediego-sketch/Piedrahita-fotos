@@ -3,7 +3,17 @@
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Check, Circle, Plus, X } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  Circle,
+  Eye,
+  EyeOff,
+  Plus,
+  Save,
+  Trash2,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -313,63 +323,75 @@ export default function AdminPanel({
                 <div className="photo-form-head">
                   <h2>{draft.title || "Nueva fotografía"}</h2>
                   <div className="admin-actions">
-                    {draft.id && draft.status === "published" && (
+                    {/* Publicar y despublicar son el mismo interruptor: dice en
+                        qué estado está y al pulsarlo lo cambia. */}
+                    {draft.id && (
                       <Button
                         variant="ghost"
+                        className={`form-action publish-toggle${
+                          draft.status === "published" ? " on" : ""
+                        }`}
+                        role="switch"
+                        aria-checked={draft.status === "published"}
                         disabled={busy}
-                        title="Quitar del mapa sin borrarla"
+                        title={
+                          draft.status === "published"
+                            ? "Quitar del mapa sin borrarla"
+                            : "Mostrarla en el mapa"
+                        }
                         onClick={() =>
-                          run(() => setPhotoStatus(draft.id!, "pending"))
+                          run(() =>
+                            setPhotoStatus(
+                              draft.id!,
+                              draft.status === "published"
+                                ? "pending"
+                                : "published"
+                            )
+                          )
                         }
                       >
-                        Despublicar
-                      </Button>
-                    )}
-                    {draft.id && draft.status !== "published" && (
-                      <Button
-                        variant="ghost"
-                        className="approve-btn"
-                        disabled={busy}
-                        onClick={() =>
-                          run(() => setPhotoStatus(draft.id!, "published"))
-                        }
-                      >
-                        Publicar
+                        {draft.status === "published" ? (
+                          <Eye aria-hidden size={15} strokeWidth={1.8} />
+                        ) : (
+                          <EyeOff aria-hidden size={15} strokeWidth={1.8} />
+                        )}
+                        {draft.status === "published" ? "Publicada" : "Oculta"}
                       </Button>
                     )}
                     {draft.id && admin && (
                       <Button
                         variant="ghost"
-                        className="delete-btn"
+                        className="form-action delete-btn"
                         disabled={busy}
                         onClick={() => {
                           const p = photos.find((x) => x.id === draft.id);
                           if (p) remove(p);
                         }}
                       >
+                        <Trash2 aria-hidden size={15} strokeWidth={1.8} />
                         Eliminar
                       </Button>
                     )}
-                    <Button variant="ghost" onClick={() => setDraft(null)}>
-                      Cerrar
-                    </Button>
                     <Button
                       variant="ghost"
-                      className="save-btn"
+                      className="form-action save-btn"
                       onClick={savePhotoDraft}
                       disabled={busy}
                     >
+                      <Save aria-hidden size={15} strokeWidth={1.8} />
                       {busy ? "Guardando…" : "Guardar"}
                     </Button>
                   </div>
                 </div>
 
-                <PhotoFields
-                  key={draft.id ?? "nueva"}
-                  draft={draft}
-                  onChange={setDraft}
-                  canFeature
-                />
+                <div className="photo-form-body">
+                  <PhotoFields
+                    key={draft.id ?? "nueva"}
+                    draft={draft}
+                    onChange={setDraft}
+                    canFeature
+                  />
+                </div>
               </div>
             ) : (
               <p className="empty-detail">
@@ -386,10 +408,11 @@ export default function AdminPanel({
             <h2>Textos de la web</h2>
             <Button
               variant="ghost"
-              className="save-btn"
+              className="form-action save-btn"
               disabled={busy || !siteDirty}
               onClick={() => run(() => saveSiteContent(siteDraft))}
             >
+              <Save aria-hidden size={15} strokeWidth={1.8} />
               {busy ? "Guardando…" : "Guardar cambios"}
             </Button>
           </div>

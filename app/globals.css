@@ -984,10 +984,10 @@ div.map-root,
   position: absolute;
   top: calc(100% + 0.5rem);
   right: 0;
-  min-width: 15rem;
+  min-width: 19rem;
   display: flex;
   flex-direction: column;
-  padding: 0.35rem;
+  padding: 0.5rem;
   background: var(--paper-solid);
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -1006,14 +1006,14 @@ div.map-root,
 .user-who {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.55rem 0.6rem 0.7rem;
+  gap: 0.8rem;
+  padding: 0.75rem 0.75rem 0.9rem;
 }
 
 .user-who-avatar {
   flex: none;
-  width: 2.1rem;
-  height: 2.1rem;
+  width: 2.7rem;
+  height: 2.7rem;
   border-radius: 50%;
   object-fit: cover;
   background: var(--fill-placeholder);
@@ -1024,7 +1024,7 @@ div.map-root,
   align-items: center;
   justify-content: center;
   color: var(--ink-soft);
-  font-size: 0.85rem;
+  font-size: 1.05rem;
 }
 
 .user-who-text {
@@ -1035,7 +1035,7 @@ div.map-root,
 }
 
 .user-who-name {
-  font-size: 0.82rem;
+  font-size: 0.95rem;
   color: var(--ink);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1043,7 +1043,7 @@ div.map-root,
 }
 
 .user-role {
-  font-size: 0.58rem;
+  font-size: 0.62rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ink-soft);
@@ -1052,14 +1052,14 @@ div.map-root,
 .user-actions {
   display: flex;
   flex-direction: column;
-  padding-top: 0.35rem;
+  padding-top: 0.5rem;
   border-top: 1px solid var(--line);
 }
 
 /* Salir no es una acción más: va aparte y solo se tiñe de rojo al apuntarlo. */
 .user-exit {
-  margin-top: 0.35rem;
-  padding-top: 0.35rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
   border-top: 1px solid var(--line);
 }
 
@@ -1067,15 +1067,15 @@ div.map-root,
 .user-dropdown button {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.75rem;
   width: 100%;
-  padding: 0.55rem 0.6rem;
+  padding: 0.7rem 0.75rem;
   border: none;
-  border-radius: 6px;
+  border-radius: 7px;
   background: none;
   color: var(--ink);
   font: inherit;
-  font-size: 0.8rem;
+  font-size: 0.88rem;
   text-align: left;
   text-decoration: none;
   cursor: pointer;

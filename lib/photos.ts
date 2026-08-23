@@ -3,7 +3,9 @@ import type { Photo, PhotoRow } from "./types";
 export type { Photo } from "./types";
 
 export const TIMELINE_MIN = 1800;
-export const TIMELINE_MAX = new Date().getFullYear();
+/* El archivo es de fotografía antigua: por ahora se corta en el fin de siglo,
+   y ya se ampliará si entran fotos posteriores. */
+export const TIMELINE_MAX = 1999;
 
 export const PHOTO_BUCKET = "photos";
 export const AVATAR_BUCKET = "avatars";

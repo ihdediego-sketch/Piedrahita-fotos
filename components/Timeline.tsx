@@ -66,7 +66,7 @@ export default function Timeline({ from, to, count, onChange }: Props) {
     }
   };
 
-  const ticks = [TIMELINE_MIN, 1850, 1900, 1950, 2000, TIMELINE_MAX];
+  const ticks = [TIMELINE_MIN, 1850, 1900, 1950, TIMELINE_MAX];
 
   return (
     <div className="timeline" role="group" aria-label="Filtro por época">

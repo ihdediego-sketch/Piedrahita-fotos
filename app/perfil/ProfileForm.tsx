@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Check, Trash2, User } from "lucide-react";
+import { ArrowLeft, Check, ImagePlus, Save, Trash2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -58,7 +58,7 @@ export default function ProfileForm({ viewer }: { viewer: NonNullable<Viewer> })
   const shown = preview ?? avatarUrl(avatarPath);
 
   return (
-    <main className="admin">
+    <main className="admin profile-page">
       <header className="admin-header">
         <div>
           <Link href="/" className="back-link">
@@ -75,25 +75,68 @@ export default function ProfileForm({ viewer }: { viewer: NonNullable<Viewer> })
           )}
           <Button
             variant="ghost"
-            className="save-btn"
+            className="form-action save-btn"
             onClick={submit}
             disabled={pending || uploading || !dirty}
           >
+            <Save aria-hidden size={15} strokeWidth={1.8} />
             {pending ? "Guardando…" : "Guardar cambios"}
           </Button>
         </div>
       </header>
 
-      <p className="hint pane-note">
-        Tu nombre y tu foto firman las fotografías que envías y los comentarios
-        que escribes. Entras como <strong>{ROLE_LABELS[viewer.role]}</strong>.
-      </p>
-
-      {error && <p className="admin-error">{error}</p>}
-
       <div className="pane">
-        <div className="profile-cols">
-          <div className="profile-fields">
+        {error && <p className="admin-error">{error}</p>}
+
+        {/* La foto y el nombre son la firma de todo lo que aporta esta persona,
+            así que abren la página; los campos largos van debajo. */}
+        <section className="profile-card profile-identity">
+          <div className="profile-avatar">
+            <div className="avatar-box">
+              {shown ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={shown} alt={displayName} />
+              ) : (
+                <User aria-hidden size={44} strokeWidth={1.2} />
+              )}
+            </div>
+            <div className="profile-avatar-actions">
+              <label className="upload-btn">
+                <ImagePlus aria-hidden size={14} strokeWidth={1.8} />
+                {uploading
+                  ? "Subiendo…"
+                  : avatarPath
+                    ? "Cambiar foto"
+                    : "Subir foto"}
+                <Input
+                  type="file"
+                  accept={ACCEPTED_AVATAR_EXT}
+                  hidden
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) upload(f);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+              {avatarPath && (
+                <Button
+                  variant="ghost"
+                  className="avatar-remove"
+                  onClick={() => {
+                    setAvatarPath("");
+                    setSaved(false);
+                  }}
+                >
+                  <Trash2 aria-hidden size={13} strokeWidth={1.8} /> Quitar foto
+                </Button>
+              )}
+              <span className="hint">JPG, PNG, WebP o AVIF. Hasta 5 MB.</span>
+            </div>
+          </div>
+
+          <div className="profile-identity-fields">
+            <span className="role-pill">{ROLE_LABELS[viewer.role]}</span>
             <label>
               Nombre
               <Input
@@ -107,65 +150,33 @@ export default function ProfileForm({ viewer }: { viewer: NonNullable<Viewer> })
               />
               <span className="hint">
                 Como quieres que te vean los demás: tu nombre, un apodo o la
-                casa de la que vienes.
+                casa de la que vienes. Firma las fotografías que envías y los
+                comentarios que escribes.
               </span>
             </label>
+          </div>
+        </section>
 
-            <label>
-              Sobre mí
-              <Textarea
-                rows={8}
-                value={bio}
-                maxLength={BIO_MAX}
-                onChange={(e) => {
-                  setBio(e.target.value);
-                  setSaved(false);
-                }}
-              />
-              <span className="hint">
-                Tu relación con Piedrahíta, lo que aportas al archivo…{" "}
+        <section className="profile-card">
+          <label>
+            Sobre mí
+            <Textarea
+              rows={8}
+              value={bio}
+              maxLength={BIO_MAX}
+              onChange={(e) => {
+                setBio(e.target.value);
+                setSaved(false);
+              }}
+            />
+            <span className="hint">
+              <span>Tu relación con Piedrahíta, lo que aportas al archivo…</span>
+              <span className="char-count">
                 {bio.length}/{BIO_MAX}
               </span>
-            </label>
-          </div>
-
-          <div className="profile-side">
-            <div className="avatar-box">
-              {shown ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={shown} alt={displayName} />
-              ) : (
-                <User aria-hidden size={40} strokeWidth={1.2} />
-              )}
-            </div>
-            <label className="upload-btn">
-              {uploading ? "Subiendo…" : avatarPath ? "Cambiar foto" : "Subir foto"}
-              <Input
-                type="file"
-                accept={ACCEPTED_AVATAR_EXT}
-                hidden
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) upload(f);
-                  e.target.value = "";
-                }}
-              />
-            </label>
-            {avatarPath && (
-              <Button
-                variant="ghost"
-                className="avatar-remove"
-                onClick={() => {
-                  setAvatarPath("");
-                  setSaved(false);
-                }}
-              >
-                <Trash2 aria-hidden size={13} strokeWidth={1.8} /> Quitar foto
-              </Button>
-            )}
-            <span className="hint">JPG, PNG, WebP o AVIF. Hasta 5 MB.</span>
-          </div>
-        </div>
+            </span>
+          </label>
+        </section>
       </div>
     </main>
   );
