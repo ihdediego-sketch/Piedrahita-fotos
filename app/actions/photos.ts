@@ -124,7 +124,15 @@ export async function savePhoto(input: PhotoInput): Promise<Result> {
   return { ok: true, slug: data?.slug };
 }
 
-/** Aprobar, rechazar o retirar una foto. Reservado a staff por RLS. */
+/**
+ * Aprobar, rechazar o retirar una foto. Staff puede moverla a cualquier
+ * estado; el propio autor solo puede dejarla en 'rejected' (retirar su
+ * envío), nunca publicarla ni tocar la de otra persona: lo decide la RLS
+ * y el trigger `guard_photo`, esta función solo pide el cambio.
+ *
+ * No hay borrado: desactivar (rejected) es la única forma de quitar algo
+ * de en medio, tanto para staff como para el autor.
+ */
 export async function setPhotoStatus(
   id: string,
   status: PhotoStatus,
@@ -140,31 +148,6 @@ export async function setPhotoStatus(
 
   if (error) return { ok: false, error: error.message };
   if (!data) return { ok: false, error: "No tienes permiso para moderarla." };
-  revalidatePath("/", "layout");
-  return { ok: true };
-}
-
-export async function deletePhoto(id: string): Promise<Result> {
-  const supabase = await createClient();
-  const { data: photo } = await supabase
-    .from("photos")
-    .select("image_path")
-    .eq("id", id)
-    .maybeSingle();
-
-  const { data, error } = await supabase
-    .from("photos")
-    .delete()
-    .eq("id", id)
-    .select("id")
-    .maybeSingle();
-
-  if (error) return { ok: false, error: error.message };
-  if (!data) return { ok: false, error: "No tienes permiso para borrarla." };
-
-  if (photo?.image_path) {
-    await supabase.storage.from(PHOTO_BUCKET).remove([photo.image_path]);
-  }
   revalidatePath("/", "layout");
   return { ok: true };
 }

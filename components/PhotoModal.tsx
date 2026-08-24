@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
-import { X, Download, Maximize2, Minimize2, Heart, Trash2 } from "lucide-react";
+import { X, Download, Maximize2, Minimize2, Heart, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import type { Photo } from "@/lib/photos";
 import { isStaff, STATUS_LABELS, type Comment, type Viewer } from "@/lib/types";
-import { addComment, deleteComment, listComments, toggleLike } from "@/app/actions/social";
+import { addComment, listComments, setCommentStatus, toggleLike } from "@/app/actions/social";
 
 type Props = {
   photo: Photo;
@@ -121,11 +121,13 @@ export default function PhotoModal({
     });
   };
 
-  const onDeleteComment = (id: string) => {
+  const onWithdrawComment = (id: string) => {
     startTransition(async () => {
-      const res = await deleteComment(id);
+      const res = await setCommentStatus(id, "rejected");
       if (!res.ok) return setError(res.error);
-      setComments((list) => (list ?? []).filter((c) => c.id !== id));
+      setComments((list) =>
+        (list ?? []).map((c) => (c.id === id ? { ...c, status: "rejected" } : c))
+      );
     });
   };
 
@@ -237,17 +239,18 @@ export default function PhotoModal({
                         {STATUS_LABELS[c.status]}
                       </span>
                     )}
-                    {(c.userId === viewer?.id || isStaff(viewer)) && (
-                      <Button
-                        variant="ghost"
-                        className="comment-delete"
-                        onClick={() => onDeleteComment(c.id)}
-                        aria-label="Borrar comentario"
-                        title="Borrar comentario"
-                      >
-                        <Trash2 aria-hidden size={13} strokeWidth={1.8} />
-                      </Button>
-                    )}
+                    {c.status !== "rejected" &&
+                      (c.userId === viewer?.id || isStaff(viewer)) && (
+                        <Button
+                          variant="ghost"
+                          className="comment-delete"
+                          onClick={() => onWithdrawComment(c.id)}
+                          aria-label="Retirar comentario"
+                          title="Retirar comentario"
+                        >
+                          <EyeOff aria-hidden size={13} strokeWidth={1.8} />
+                        </Button>
+                      )}
                   </div>
                   <p className="comment-body">{c.body}</p>
                 </li>

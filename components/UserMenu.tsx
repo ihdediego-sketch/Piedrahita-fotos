@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { User, ImagePlus, History, LogOut, Settings } from "lucide-react";
+import { User, ImagePlus, LogOut, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { signOut } from "@/app/auth/actions";
 import { ROLE_LABELS, isStaff, type Viewer } from "@/lib/types";
@@ -42,10 +42,10 @@ export default function UserMenu({ viewer }: { viewer: Viewer }) {
       <Link
         href="/subir"
         className="user-chip user-chip-submit"
-        aria-label="Enviar una fotografía"
         title="Enviar una fotografía"
       >
         <ImagePlus aria-hidden size={17} strokeWidth={1.8} />
+        Enviar fotos
       </Link>
 
       <Button
@@ -91,13 +91,9 @@ export default function UserMenu({ viewer }: { viewer: Viewer }) {
                 Panel de control
               </Link>
             )}
-            <Link href="/historial" role="menuitem" onClick={() => setOpen(false)}>
-              <History aria-hidden size={17} strokeWidth={1.7} />
-              Mi historial
-            </Link>
             <Link href="/perfil" role="menuitem" onClick={() => setOpen(false)}>
               <User aria-hidden size={17} strokeWidth={1.7} />
-              Editar perfil
+              Tu perfil
             </Link>
           </div>
 

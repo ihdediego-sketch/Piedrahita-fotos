@@ -19,7 +19,6 @@ import {
   MessageSquare,
   Plus,
   Save,
-  Trash2,
   Type,
   Users,
   X,
@@ -30,19 +29,19 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import UserMenu from "@/components/UserMenu";
+import SegmentedFilter from "@/components/admin/SegmentedFilter";
 import PhotoFields, {
   emptyDraft,
   toDraft,
   type Draft,
 } from "@/components/PhotoEditor";
 import {
-  deletePhoto,
   savePhoto,
   saveSiteContent,
   setPhotoStatus,
   setRole,
 } from "@/app/actions/photos";
-import { deleteComment, setCommentStatus } from "@/app/actions/social";
+import { setCommentStatus } from "@/app/actions/social";
 import { avatarUrl, defaultDateLabel } from "@/lib/photos";
 import { useScrollBorder } from "@/lib/useScrollBorder";
 import {
@@ -117,10 +116,9 @@ export default function AdminPanel({
     count?: number;
     badge?: number;
   }[] = [
-    ...(admin ? ([{ id: "textos", label: "Textos", icon: Type }] as const) : []),
     {
       id: "fotos",
-      label: "Fotografías",
+      label: "Fotos",
       icon: ImageIcon,
       count: photos.length,
       badge: pending.length,
@@ -140,6 +138,7 @@ export default function AdminPanel({
             icon: Users,
             count: profiles.length,
           },
+          { id: "textos", label: "Textos", icon: Type },
         ] as const)
       : []),
   ];
@@ -242,13 +241,10 @@ export default function AdminPanel({
     run(() => setPhotoStatus(photo.id, status, note));
   };
 
-  const remove = (photo: Photo) => {
-    if (!confirm(`¿Eliminar «${photo.title}»? No se puede deshacer.`)) return;
-    run(async () => {
-      const res = await deletePhoto(photo.id);
-      if (res.ok && draft?.id === photo.id) closeDraft();
-      return res;
-    });
+  const deactivate = (photo: Photo) => {
+    if (!confirm(`¿Desactivar «${photo.title}»? Deja de verse en el mapa.`))
+      return;
+    run(() => setPhotoStatus(photo.id, "rejected"));
   };
 
   const moderateComment = (comment: Comment, status: PhotoStatus) => {
@@ -257,11 +253,6 @@ export default function AdminPanel({
         ? (prompt(`Motivo del descarte del comentario de ${comment.authorName} (opcional):`) ?? "")
         : "";
     run(() => setCommentStatus(comment.id, status, note));
-  };
-
-  const removeComment = (comment: Comment) => {
-    if (!confirm("¿Eliminar este comentario? No se puede deshacer.")) return;
-    run(() => deleteComment(comment.id));
   };
 
   /** Los botones de moderación de una fila, según lo que falte por hacer. */
@@ -344,28 +335,18 @@ export default function AdminPanel({
             <Check aria-hidden size={14} strokeWidth={2} />
           </Button>
         )}
-        {c.status === "pending" && (
+        {c.status !== "rejected" && (
           <Button
             variant="ghost"
             className="reject-btn"
-            title="Descartar"
-            aria-label="Descartar"
+            title="Desactivar"
+            aria-label="Desactivar"
             disabled={busy}
             onClick={() => moderateComment(c, "rejected")}
           >
             <X aria-hidden size={14} strokeWidth={2} />
           </Button>
         )}
-        <Button
-          variant="ghost"
-          className="delete-btn"
-          title="Eliminar"
-          aria-label="Eliminar"
-          disabled={busy}
-          onClick={() => removeComment(c)}
-        >
-          <Trash2 aria-hidden size={14} strokeWidth={1.8} />
-        </Button>
       </span>
     );
   };
@@ -465,24 +446,22 @@ export default function AdminPanel({
               <Plus aria-hidden size={13} strokeWidth={2} /> Añadir fotografía
             </Button>
 
-            <div className="filter-row" role="group" aria-label="Filtrar por estado">
-              {PHOTO_FILTERS.map((status) => (
-                <Button
-                  key={status}
-                  variant="ghost"
-                  className={`filter-chip filter-chip-${status}${
-                    photoFilter === status ? " active" : ""
-                  }`}
-                  aria-pressed={photoFilter === status}
-                  onClick={() => setPhotoFilter(status)}
-                >
-                  {STATUS_LABELS_PLURAL[status]}
-                  <span className="filter-count">
-                    {photos.filter((p) => p.status === status).length}
-                  </span>
-                </Button>
-              ))}
-            </div>
+            <SegmentedFilter
+              ariaLabel="Filtrar por estado"
+              value={photoFilter}
+              onChange={setPhotoFilter}
+              options={PHOTO_FILTERS.map((status) => ({
+                id: status,
+                label: (
+                  <>
+                    {STATUS_LABELS_PLURAL[status]}
+                    <span className="filter-count">
+                      {photos.filter((p) => p.status === status).length}
+                    </span>
+                  </>
+                ),
+              }))}
+            />
 
             {visiblePhotos.length === 0 && (
               <p className="hint pane-note">{emptyNote}</p>
@@ -556,13 +535,13 @@ export default function AdminPanel({
                     canFeature
                   />
 
-                  {draft.id && admin && (
+                  {draft.id && admin && draft.status !== "rejected" && (
                     <section className="danger-zone">
-                      <h3>Zona de peligro</h3>
+                      <h3>Desactivar</h3>
                       <div className="danger-zone-row">
                         <p className="hint">
-                          Elimina la fotografía y su información. No se puede
-                          deshacer.
+                          Deja de verse en el mapa. No se borra: se puede
+                          volver a aprobar cuando haga falta.
                         </p>
                         <Button
                           variant="ghost"
@@ -570,11 +549,11 @@ export default function AdminPanel({
                           disabled={busy}
                           onClick={() => {
                             const p = photos.find((x) => x.id === draft.id);
-                            if (p) remove(p);
+                            if (p) deactivate(p);
                           }}
                         >
-                          <Trash2 aria-hidden size={15} strokeWidth={1.8} />
-                          Eliminar fotografía
+                          <EyeOff aria-hidden size={15} strokeWidth={1.8} />
+                          Desactivar fotografía
                         </Button>
                       </div>
                     </section>
@@ -594,24 +573,22 @@ export default function AdminPanel({
         <div className="pane pane-centered" onScroll={onScroll}>
           <h2>Comentarios</h2>
 
-          <div className="filter-row" role="group" aria-label="Filtrar por estado">
-            {PHOTO_FILTERS.map((status) => (
-              <Button
-                key={status}
-                variant="ghost"
-                className={`filter-chip filter-chip-${status}${
-                  commentFilter === status ? " active" : ""
-                }`}
-                aria-pressed={commentFilter === status}
-                onClick={() => setCommentFilter(status)}
-              >
-                {STATUS_LABELS_PLURAL[status]}
-                <span className="filter-count">
-                  {comments.filter((c) => c.status === status).length}
-                </span>
-              </Button>
-            ))}
-          </div>
+          <SegmentedFilter
+            ariaLabel="Filtrar por estado"
+            value={commentFilter}
+            onChange={setCommentFilter}
+            options={PHOTO_FILTERS.map((status) => ({
+              id: status,
+              label: (
+                <>
+                  {STATUS_LABELS_PLURAL[status]}
+                  <span className="filter-count">
+                    {comments.filter((c) => c.status === status).length}
+                  </span>
+                </>
+              ),
+            }))}
+          />
 
           {visibleComments.length === 0 && (
             <p className="hint pane-note">{emptyCommentNote}</p>
@@ -681,28 +658,20 @@ export default function AdminPanel({
         <div className="pane pane-centered" onScroll={onScroll}>
           <h2>Usuarios</h2>
 
-          <div className="filter-row" role="group" aria-label="Filtrar por tipo">
-            <Button
-              variant="ghost"
-              className={`filter-chip${peopleFilter === "todos" ? " active" : ""}`}
-              aria-pressed={peopleFilter === "todos"}
-              onClick={() => setPeopleFilter("todos")}
-            >
-              Todos ({profiles.length})
-            </Button>
-            {ROLES.map((role) => (
-              <Button
-                key={role}
-                variant="ghost"
-                className={`filter-chip${peopleFilter === role ? " active" : ""}`}
-                aria-pressed={peopleFilter === role}
-                onClick={() => setPeopleFilter(role)}
-              >
-                {ROLE_LABELS_PLURAL[role]} (
-                {profiles.filter((p) => p.role === role).length})
-              </Button>
-            ))}
-          </div>
+          <SegmentedFilter
+            ariaLabel="Filtrar por tipo"
+            value={peopleFilter}
+            onChange={setPeopleFilter}
+            options={[
+              { id: "todos" as const, label: `Todos (${profiles.length})` },
+              ...ROLES.map((role) => ({
+                id: role,
+                label: `${ROLE_LABELS_PLURAL[role]} (${
+                  profiles.filter((p) => p.role === role).length
+                })`,
+              })),
+            ]}
+          />
 
           {visibleProfiles.length === 0 && (
             <p className="hint pane-note">No hay nadie con este tipo.</p>

@@ -89,24 +89,6 @@ export async function addComment(
   return { ok: true, comment: toComment(data) };
 }
 
-/** Borra un comentario propio; staff puede borrar cualquiera (lo decide la RLS). */
-export async function deleteComment(
-  id: string
-): Promise<{ ok: true } | { ok: false; error: string }> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("comments")
-    .delete()
-    .eq("id", id)
-    .select("id")
-    .maybeSingle();
-
-  if (error) return { ok: false, error: error.message };
-  if (!data) return { ok: false, error: "No tienes permiso para borrarlo." };
-  revalidatePath("/", "layout");
-  return { ok: true };
-}
-
 /** Los comentarios de una foto, para cargarlos al abrir el modal. La RLS ya
  * limita lo que vuelve: publicados para cualquiera, más los propios. */
 export async function listComments(photoId: string): Promise<Comment[]> {
@@ -120,7 +102,12 @@ export async function listComments(photoId: string): Promise<Comment[]> {
   return (data ?? []).map(toComment);
 }
 
-/** Aprobar, rechazar o retirar un comentario. Reservado a staff por RLS. */
+/**
+ * Aprobar, rechazar o retirar un comentario. Staff puede moverlo a
+ * cualquier estado; el propio autor solo puede dejarlo en 'rejected'
+ * (retirar lo suyo). No hay borrado: esto es lo único que existe para
+ * quitar un comentario de en medio.
+ */
 export async function setCommentStatus(
   id: string,
   status: PhotoStatus,

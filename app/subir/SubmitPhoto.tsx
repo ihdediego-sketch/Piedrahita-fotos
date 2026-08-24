@@ -27,7 +27,7 @@ export default function SubmitPhoto({
   const [done, setDone] = useState(false);
   const [pending, startTransition] = useTransition();
 
-  // Llegar desde «Mi historial» con ?edit=<id> abre directamente esa foto.
+  // Llegar desde «Tu perfil» con ?edit=<id> abre directamente esa foto.
   // Se lee de window.location en vez de useSearchParams para no obligar a
   // esta página a envolverse en un <Suspense>.
   useEffect(() => {
@@ -111,7 +111,7 @@ export default function SubmitPhoto({
       </div>
 
       <p className="hint pane-note">
-        <Link href="/historial">Ver tus fotografías y comentarios enviados →</Link>
+        <Link href="/perfil">Ver tus fotografías y comentarios enviados →</Link>
       </p>
     </main>
   );

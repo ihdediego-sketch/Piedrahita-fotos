@@ -73,8 +73,13 @@
 }
 
 .admin-actions {
+  /* Columna 3 explícita: en las cabeceras de dos elementos (sin pestañas
+     en medio) el auto-placement de grid la metería en la columna 2, lejos
+     del borde derecho. */
+  grid-column: 3;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 0.8rem;
   flex-shrink: 0;
 }
@@ -1108,7 +1113,7 @@
 .profile-page > .admin-header,
 .profile-page > .pane {
   width: 100%;
-  max-width: 780px;
+  max-width: 960px;
   margin-inline: auto;
 }
 
@@ -1199,6 +1204,14 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Tus fotografías y tus comentarios, lado a lado: son dos listas del mismo
+   tamaño, no hace falta que una se lea antes que la otra. */
+.history-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.5rem;
+}
+
 /* Redondo y cuadrado (1/1) frente al 4/3 de las fotos del archivo: así se
    distingue de un vistazo a una persona de una fotografía. La propia foto
    es el botón de subida: al pasar el ratón se oscurece y enseña la cámara,
@@ -1276,6 +1289,10 @@
   .profile-card {
     padding: 1.4rem;
   }
+  .history-columns {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
 }
 
 /* ---------- Filtros de lista ----------
@@ -1283,6 +1300,7 @@
    son la misma acción —acotar una lista larga— y conviene que se lean igual. */
 
 .filter-row {
+  position: relative;
   flex-shrink: 0;
   display: flex;
   flex-wrap: nowrap;
@@ -1294,7 +1312,25 @@
   border-radius: 999px;
 }
 
+/* Misma pastilla deslizante que .admin-tabs-marker: un solo color en todo
+   el sistema para marcar "esto está activo", en vez de teñir cada opción
+   de un color de estado distinto. */
+.filter-row-marker {
+  position: absolute;
+  top: 0.25rem;
+  bottom: 0.25rem;
+  left: 0;
+  border-radius: 999px;
+  background: var(--brown-soft);
+  border: 1px solid var(--line);
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
 .filter-chip {
+  position: relative;
+  z-index: 1;
   flex: 1 1 0;
   min-width: 0;
   display: inline-flex;
@@ -1313,17 +1349,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: color 0.15s ease, background 0.15s ease;
-}
-
-.filter-chip:hover:not(:disabled):not(.active) {
-  background: color-mix(in srgb, var(--ink) 6%, transparent);
-}
-
-.filter-chip.active {
-  background: var(--brown-soft);
-  border: 1px solid var(--line);
-  color: var(--ink);
+  transition: color 0.15s ease;
 }
 
 /* La cuenta viaja con el filtro, apagada frente a la etiqueta hasta que el
@@ -1333,22 +1359,10 @@
   color: color-mix(in srgb, currentColor 55%, transparent);
 }
 
-/* Cada filtro de estado se tiñe del color de ese estado al activarse: el
-   chip mismo dice qué va a enseñar, sin depender solo del texto. Son fondos
-   saturados, así que aquí sí hace falta texto claro. */
-.filter-chip-published.active {
-  background: var(--success);
-  color: var(--paper-solid);
-}
-
-.filter-chip-pending.active {
-  background: var(--warning);
-  color: var(--paper-solid);
-}
-
-.filter-chip-rejected.active {
-  background: var(--destructive);
-  color: var(--paper-solid);
+@media (prefers-reduced-motion: reduce) {
+  .filter-row-marker {
+    transition: none;
+  }
 }
 
 /* Cuenta de pendientes junto a la pestaña: la cola de revisión ya no tiene
@@ -1371,13 +1385,16 @@
 .text-group {
   padding-top: 1.4rem;
   margin-top: 1.4rem;
-  border-top: 1px solid var(--line);
 }
 
 .text-group:first-of-type {
   padding-top: 0;
   margin-top: 0;
-  border-top: none;
+}
+
+/* Sin línea alguna en Textos: los grupos se separan solo con aire. */
+.pane-centered .photo-form-head {
+  border-bottom: none;
 }
 
 .text-group h3 {

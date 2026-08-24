@@ -3,17 +3,45 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Camera, Check, Save, Trash2, User } from "lucide-react";
+import {
+  ArrowLeft,
+  Camera,
+  Check,
+  EyeOff,
+  Pencil,
+  Save,
+  Trash2,
+  X,
+  User,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { saveProfile } from "@/app/actions/profile";
-import { avatarUrl } from "@/lib/photos";
+import { setPhotoStatus } from "@/app/actions/photos";
+import { setCommentStatus } from "@/app/actions/social";
+import { defaultDateLabel, avatarUrl } from "@/lib/photos";
 import { ACCEPTED_AVATAR_EXT, uploadAvatarImage } from "@/lib/upload";
-import { BIO_MAX, ROLE_LABELS, type Viewer } from "@/lib/types";
+import {
+  BIO_MAX,
+  ROLE_LABELS,
+  STATUS_LABELS,
+  type Comment,
+  type Photo,
+  type Viewer,
+} from "@/lib/types";
 
-export default function ProfileForm({ viewer }: { viewer: NonNullable<Viewer> }) {
+export default function ProfileForm({
+  viewer,
+  photos,
+  comments,
+}: {
+  viewer: NonNullable<Viewer>;
+  photos: Photo[];
+  comments: Comment[];
+}) {
   const router = useRouter();
+  const [busy, startHistoryTransition] = useTransition();
   const [displayName, setDisplayName] = useState(viewer.displayName);
   const [bio, setBio] = useState(viewer.bio);
   const [avatarPath, setAvatarPath] = useState(viewer.avatarPath);
@@ -64,6 +92,23 @@ export default function ProfileForm({ viewer }: { viewer: NonNullable<Viewer> })
   };
 
   const shown = preview ?? avatarUrl(avatarPath);
+
+  const retractPhoto = (photo: Photo) => {
+    if (!confirm(`¿Retirar «${photo.title}»? Deja de estar pendiente de revisión.`))
+      return;
+    startHistoryTransition(async () => {
+      await setPhotoStatus(photo.id, "rejected");
+      router.refresh();
+    });
+  };
+
+  const retractComment = (comment: Comment) => {
+    if (!confirm("¿Retirar este comentario?")) return;
+    startHistoryTransition(async () => {
+      await setCommentStatus(comment.id, "rejected");
+      router.refresh();
+    });
+  };
 
   return (
     <main className="admin profile-page">
@@ -194,6 +239,109 @@ export default function ProfileForm({ viewer }: { viewer: NonNullable<Viewer> })
             </div>
           </div>
         </section>
+
+        <div className="history-columns">
+          <section>
+            <h2>Tus fotografías</h2>
+            {photos.length === 0 ? (
+              <p className="hint pane-note">Aún no has enviado ninguna fotografía.</p>
+            ) : (
+              <ul className="photo-list">
+                {photos.map((p) => (
+                  <li key={p.id}>
+                    <div className="photo-row">
+                      <span className="thumb">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        {p.image && <img src={p.image} alt="" />}
+                      </span>
+                      <span className="photo-row-text">
+                        <span className="photo-row-title">
+                          {p.title || "(sin título)"}
+                        </span>
+                        <span className="photo-row-meta">
+                          <span className={`status-dot ${p.status}`} aria-hidden />
+                          {p.dateLabel || defaultDateLabel(p)}
+                        </span>
+                        {p.status === "rejected" && p.reviewNote && (
+                          <span className="hint">Motivo: {p.reviewNote}</span>
+                        )}
+                      </span>
+                    </div>
+                    <span className="row-actions">
+                      <Button
+                        variant="ghost"
+                        className="approve-btn"
+                        title="Editar"
+                        aria-label="Editar"
+                        onClick={() => router.push(`/subir?edit=${p.id}`)}
+                      >
+                        <Pencil aria-hidden size={14} strokeWidth={1.8} />
+                      </Button>
+                      {p.status === "pending" && (
+                        <Button
+                          variant="ghost"
+                          className="reject-btn"
+                          title="Retirar"
+                          aria-label="Retirar"
+                          disabled={busy}
+                          onClick={() => retractPhoto(p)}
+                        >
+                          <EyeOff aria-hidden size={14} strokeWidth={1.8} />
+                        </Button>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          <section>
+            <h2>Tus comentarios</h2>
+            {comments.length === 0 ? (
+              <p className="hint pane-note">Aún no has escrito ningún comentario.</p>
+            ) : (
+              <ul className="photo-list">
+                {comments.map((c) => (
+                  <li key={c.id}>
+                    <div className="photo-row comment-row">
+                      <span className="photo-row-text">
+                        <span className="photo-row-title">
+                          {c.photoTitle || "(foto retirada)"}
+                        </span>
+                        <span className="photo-row-meta">
+                          <span className={`status-dot ${c.status}`} aria-hidden />
+                          {STATUS_LABELS[c.status]}
+                          <span className="photo-row-author">
+                            · {new Date(c.createdAt).toLocaleDateString("es-ES")}
+                          </span>
+                        </span>
+                        <span className="comment-row-body">{c.body}</span>
+                        {c.status === "rejected" && c.reviewNote && (
+                          <span className="hint">Motivo: {c.reviewNote}</span>
+                        )}
+                      </span>
+                    </div>
+                    <span className="row-actions">
+                      {c.status !== "rejected" && (
+                        <Button
+                          variant="ghost"
+                          className="reject-btn"
+                          title="Retirar"
+                          aria-label="Retirar"
+                          disabled={busy}
+                          onClick={() => retractComment(c)}
+                        >
+                          <X aria-hidden size={14} strokeWidth={1.8} />
+                        </Button>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </div>
       </div>
     </main>
   );
