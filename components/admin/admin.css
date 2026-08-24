@@ -154,7 +154,7 @@
   left: 0;
   bottom: 0.25rem;
   border-radius: 999px;
-  background: var(--brown);
+  background: var(--brown-soft);
   transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
     width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
@@ -195,7 +195,7 @@
 
 .admin-tabs button.active,
 .admin-tabs button[data-active] {
-  color: var(--paper-solid);
+  color: var(--ink);
   background: none;
 }
 
@@ -256,7 +256,7 @@
   border: 1px solid var(--border-input);
   border-radius: var(--radius-sm);
   height: auto;
-  padding: 0.55rem 0.7rem;
+  padding: 0.55rem 0.9rem;
   letter-spacing: normal;
   text-transform: none;
   width: 100%;
@@ -994,9 +994,9 @@
 }
 
 .role-btn.active {
-  background: var(--brown);
-  border-color: var(--brown);
-  color: var(--paper-solid);
+  background: var(--brown-soft);
+  border-color: var(--brown-soft);
+  color: var(--ink);
 }
 
 /* ---------- Pantalla de acceso ---------- */
@@ -1305,8 +1305,8 @@
 }
 
 .filter-chip.active {
-  background: var(--brown);
-  color: var(--paper-solid);
+  background: var(--brown-soft);
+  color: var(--ink);
 }
 
 /* La cuenta viaja con el filtro, apagada frente a la etiqueta hasta que el
@@ -1316,22 +1316,22 @@
   color: color-mix(in srgb, currentColor 55%, transparent);
 }
 
-.filter-chip.active .filter-count {
-  color: color-mix(in srgb, var(--paper-solid) 70%, transparent);
-}
-
 /* Cada filtro de estado se tiñe del color de ese estado al activarse: el
-   chip mismo dice qué va a enseñar, sin depender solo del texto. */
+   chip mismo dice qué va a enseñar, sin depender solo del texto. Son fondos
+   saturados, así que aquí sí hace falta texto claro. */
 .filter-chip-published.active {
   background: var(--success);
+  color: var(--paper-solid);
 }
 
 .filter-chip-pending.active {
   background: var(--warning);
+  color: var(--paper-solid);
 }
 
 .filter-chip-rejected.active {
   background: var(--destructive);
+  color: var(--paper-solid);
 }
 
 /* Cuenta de pendientes junto a la pestaña: la cola de revisión ya no tiene
