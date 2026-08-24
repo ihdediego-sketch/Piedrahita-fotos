@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   Camera,
   Check,
+  ChevronDown,
   EyeOff,
   Heart,
   ImageIcon,
@@ -55,6 +56,12 @@ export default function ProfileForm({
   // al pulsar «Editar», para que la página se lea como una ficha y no
   // como un formulario a medio rellenar.
   const [editing, setEditing] = useState(false);
+  // Overview de actividad: se ve como tres números grandes; tocar uno
+  // despliega el listado detallado de esa sección, en vez de enseñar las
+  // tres listas enteras siempre.
+  const [expanded, setExpanded] = useState<"photos" | "comments" | "likes" | null>(
+    null
+  );
   // Vista previa local mientras sube, para no esperar a Storage
   const [preview, setPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -190,7 +197,7 @@ export default function ProfileForm({
             del mismo perfil, no pasos separados. Por defecto se lee como una
             ficha; «Editar» es lo único que hace falta pulsar para que los
             mismos huecos se vuelvan campos. */}
-        <section className="profile-card">
+        <section className={`profile-card${editing ? "" : " profile-card-compact"}`}>
           {editing ? (
             <div className="profile-identity">
               <label className="avatar-upload">
@@ -274,13 +281,13 @@ export default function ProfileForm({
               </div>
             </div>
           ) : (
-            <div className="profile-identity">
+            <div className="profile-identity profile-identity-compact">
               <div className="avatar-box">
                 {shown ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={shown} alt={displayName} />
                 ) : (
-                  <User aria-hidden size={40} strokeWidth={1.2} />
+                  <User aria-hidden size={28} strokeWidth={1.2} />
                 )}
               </div>
 
@@ -310,13 +317,39 @@ export default function ProfileForm({
 
         <h2 className="section-heading">Tu actividad</h2>
 
-        <div className="history-columns">
-          <section>
-            <h3>
-              <ImageIcon aria-hidden size={14} strokeWidth={1.8} />
-              Tus fotografías
-              <span className="section-count">{photos.length}</span>
-            </h3>
+        <div className="stats-overview">
+          {(
+            [
+              { key: "photos", label: "Fotografías", icon: ImageIcon, count: photos.length },
+              { key: "comments", label: "Comentarios", icon: MessageSquare, count: comments.length },
+              { key: "likes", label: "Me gusta", icon: Heart, count: likes.length },
+            ] as const
+          ).map((s) => {
+            const active = expanded === s.key;
+            const Icon = s.icon;
+            return (
+              <button
+                key={s.key}
+                type="button"
+                className={`stat-card${active ? " active" : ""}`}
+                aria-expanded={active}
+                onClick={() => setExpanded(active ? null : s.key)}
+              >
+                <span className="stat-top">
+                  <span className="stat-icon">
+                    <Icon aria-hidden size={16} strokeWidth={1.8} />
+                  </span>
+                  <ChevronDown aria-hidden size={14} strokeWidth={2} className="stat-chevron" />
+                </span>
+                <span className="stat-number">{s.count}</span>
+                <span className="stat-label">{s.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {expanded === "photos" && (
+          <section className="stat-detail">
             {photos.length === 0 ? (
               <p className="hint pane-note">Aún no has enviado ninguna fotografía.</p>
             ) : (
@@ -369,13 +402,10 @@ export default function ProfileForm({
               </ul>
             )}
           </section>
+        )}
 
-          <section>
-            <h3>
-              <MessageSquare aria-hidden size={14} strokeWidth={1.8} />
-              Tus comentarios
-              <span className="section-count">{comments.length}</span>
-            </h3>
+        {expanded === "comments" && (
+          <section className="stat-detail">
             {comments.length === 0 ? (
               <p className="hint pane-note">Aún no has escrito ningún comentario.</p>
             ) : (
@@ -419,13 +449,10 @@ export default function ProfileForm({
               </ul>
             )}
           </section>
+        )}
 
-          <section>
-            <h3>
-              <Heart aria-hidden size={14} strokeWidth={1.8} />
-              Tus me gusta
-              <span className="section-count">{likes.length}</span>
-            </h3>
+        {expanded === "likes" && (
+          <section className="stat-detail">
             {likes.length === 0 ? (
               <p className="hint pane-note">Aún no has dado me gusta a ninguna fotografía.</p>
             ) : (
@@ -463,7 +490,7 @@ export default function ProfileForm({
               </ul>
             )}
           </section>
-        </div>
+        )}
       </div>
     </main>
   );

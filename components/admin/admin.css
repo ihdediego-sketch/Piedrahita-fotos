@@ -1320,33 +1320,136 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Fotografías, comentarios y me gusta, lado a lado: son tres listas del
-   mismo tamaño, no hace falta que una se lea antes que otra. */
-.history-columns {
+/* Ficha compacta: fuera de edición no hace falta el mismo aire que un
+   formulario, así que el avatar encoge y el bio se recorta a dos líneas. */
+.profile-card-compact {
+  padding: 1.1rem 1.5rem;
+}
+
+.profile-identity-compact {
+  grid-template-columns: 3.6rem 1fr;
+  column-gap: 1.1rem;
+  row-gap: 0;
+  align-items: center;
+}
+
+.profile-identity-compact .role-pill {
+  margin-bottom: 0.15rem;
+}
+
+.profile-identity-compact .profile-name {
+  font-size: 1.05rem;
+}
+
+.profile-identity-compact .profile-bio {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Fotografías, comentarios y me gusta: tres números grandes a modo de
+   overview. Tocar uno despliega su listado con detalle debajo, en vez de
+   enseñar las tres listas enteras de golpe. */
+.stats-overview {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
+  gap: 1rem;
 }
 
-.history-columns h3 {
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 1.3rem 1.4rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--paper-solid);
+  box-shadow: 0 1px 2px rgba(17, 17, 17, 0.04);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+    transform 0.15s ease, background 0.15s ease;
+}
+
+.stat-card:hover {
+  border-color: var(--brown);
+  box-shadow: 0 6px 16px rgba(17, 17, 17, 0.08);
+  transform: translateY(-2px);
+}
+
+.stat-card.active {
+  border-color: var(--brown);
+  background: var(--brown-soft);
+  box-shadow: 0 6px 16px rgba(17, 17, 17, 0.08);
+}
+
+.stat-top {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  margin-bottom: 0.8rem;
-  font-size: 0.85rem;
-  font-weight: 500;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.stat-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 50%;
+  background: var(--brown-soft);
+  color: var(--brown);
+}
+
+.stat-card.active .stat-icon {
+  background: var(--paper-solid);
+}
+
+.stat-chevron {
+  color: var(--ink-soft);
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.stat-card.active .stat-chevron {
+  color: var(--brown);
+  transform: rotate(180deg);
+}
+
+.stat-number {
+  font-size: clamp(2rem, 4vw, 2.6rem);
+  font-weight: 600;
+  line-height: 1;
   color: var(--ink);
-}
-
-.history-columns h3 svg {
-  color: var(--ink-soft);
-}
-
-.section-count {
-  margin-left: auto;
-  font-size: 0.68rem;
   font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--ink-soft);
+}
+
+.stat-card.active .stat-label {
+  color: var(--brown);
+}
+
+.stat-detail {
+  animation: stat-detail-in 0.18s ease;
+}
+
+@keyframes stat-detail-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Redondo y cuadrado (1/1) frente al 4/3 de las fotos del archivo: así se
@@ -1400,12 +1503,9 @@
   opacity: 1;
 }
 
-@media (max-width: 1020px) {
-  .history-columns {
-    grid-template-columns: 1fr 1fr;
-  }
-  .history-columns > section:last-child {
-    grid-column: 1 / -1;
+@media (max-width: 640px) {
+  .stats-overview {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1434,13 +1534,6 @@
   }
   .profile-card {
     padding: 1.4rem;
-  }
-  .history-columns {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-  }
-  .history-columns > section:last-child {
-    grid-column: 1;
   }
 }
 
