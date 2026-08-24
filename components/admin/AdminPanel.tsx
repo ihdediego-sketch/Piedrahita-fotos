@@ -26,6 +26,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import UserMenu from "@/components/UserMenu";
 import PhotoFields, {
@@ -404,28 +405,14 @@ export default function AdminPanel({
                     {/* Publicar y despublicar son el mismo interruptor: dice en
                         qué estado está y al pulsarlo lo cambia. */}
                     {draft.id && (
-                      <Button
-                        variant="ghost"
-                        className={`form-action publish-toggle${
+                      <label
+                        className={`publish-switch${
                           draft.status === "published" ? " on" : ""
                         }`}
-                        role="switch"
-                        aria-checked={draft.status === "published"}
-                        disabled={busy}
                         title={
                           draft.status === "published"
                             ? "Quitar del mapa sin borrarla"
                             : "Mostrarla en el mapa"
-                        }
-                        onClick={() =>
-                          run(() =>
-                            setPhotoStatus(
-                              draft.id!,
-                              draft.status === "published"
-                                ? "pending"
-                                : "published"
-                            )
-                          )
                         }
                       >
                         {draft.status === "published" ? (
@@ -434,7 +421,20 @@ export default function AdminPanel({
                           <EyeOff aria-hidden size={15} strokeWidth={1.8} />
                         )}
                         {draft.status === "published" ? "Publicada" : "Oculta"}
-                      </Button>
+                        <Switch
+                          className="data-checked:bg-success"
+                          checked={draft.status === "published"}
+                          disabled={busy}
+                          onCheckedChange={(checked) =>
+                            run(() =>
+                              setPhotoStatus(
+                                draft.id!,
+                                checked ? "published" : "pending"
+                              )
+                            )
+                          }
+                        />
+                      </label>
                     )}
                     {/* Sin cambios no hay nada que guardar: el botón sobra. */}
                     {draftDirty && (

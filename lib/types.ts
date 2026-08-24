@@ -160,9 +160,9 @@ export const ROLE_LABELS: Record<Role, string> = {
 };
 
 export const ROLE_LABELS_PLURAL: Record<Role, string> = {
-  admin: "Administradores",
+  admin: "Admins",
   colaborador: "Colaboradores",
-  usuario: "Usuarios registrados",
+  usuario: "Usuarios",
 };
 
 export const STATUS_LABELS: Record<PhotoStatus, string> = {
