@@ -62,12 +62,27 @@ export type Photo = {
   comments: number;
 };
 
+/** Fila tal cual vive en la tabla `comments`. */
+export type CommentRow = {
+  id: string;
+  photo_id: string;
+  user_id: string;
+  body: string;
+  status: PhotoStatus;
+  review_note: string | null;
+  created_at: string;
+};
+
 export type Comment = {
   id: string;
   photoId: string;
+  photoTitle: string;
+  photoSlug: string;
   userId: string;
   authorName: string;
   body: string;
+  status: PhotoStatus;
+  reviewNote: string | null;
   createdAt: string;
 };
 

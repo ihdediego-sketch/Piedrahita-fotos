@@ -16,6 +16,7 @@ import {
   Eye,
   EyeOff,
   ImageIcon,
+  MessageSquare,
   Plus,
   Save,
   Trash2,
@@ -41,13 +42,16 @@ import {
   setPhotoStatus,
   setRole,
 } from "@/app/actions/photos";
+import { deleteComment, setCommentStatus } from "@/app/actions/social";
 import { avatarUrl, defaultDateLabel } from "@/lib/photos";
+import { useScrollBorder } from "@/lib/useScrollBorder";
 import {
   ROLE_LABELS,
   ROLE_LABELS_PLURAL,
   SITE_TEXT_GROUPS,
   STATUS_LABELS_PLURAL,
   isAdmin,
+  type Comment,
   type Photo,
   type PhotoStatus,
   type Profile,
@@ -57,7 +61,7 @@ import {
 } from "@/lib/types";
 import "./admin.css";
 
-type Tab = "fotos" | "textos" | "personas";
+type Tab = "fotos" | "comentarios" | "textos" | "personas";
 
 /** «todos»: el filtro de personas apagado, sin rol elegido. */
 type PeopleFilter = Role | "todos";
@@ -68,11 +72,13 @@ const PHOTO_FILTERS: PhotoStatus[] = ["published", "pending", "rejected"];
 export default function AdminPanel({
   viewer,
   photos,
+  comments,
   site,
   profiles,
 }: {
   viewer: Viewer;
   photos: Photo[];
+  comments: Comment[];
   site: SiteContent;
   profiles: Profile[];
 }) {
@@ -80,12 +86,20 @@ export default function AdminPanel({
   const admin = isAdmin(viewer);
 
   const pending = photos.filter((p) => p.status === "pending");
+  const pendingComments = comments.filter((c) => c.status === "pending");
 
   const [tab, setTab] = useState<Tab>("fotos");
+  const { scrolled, onScroll, reset: resetScrolled } = useScrollBorder();
+  // Cada pestaña trae su propio scroll: al cambiar, la línea vuelve a
+  // apagarse hasta que el contenido nuevo scrollee.
+  useEffect(resetScrolled, [tab, resetScrolled]);
   // Si hay cola de revisión se abre por ella: es lo que trae aquí a un
   // colaborador. Con todo al día, las publicadas.
   const [photoFilter, setPhotoFilter] = useState<PhotoStatus>(
     pending.length > 0 ? "pending" : "published"
+  );
+  const [commentFilter, setCommentFilter] = useState<PhotoStatus>(
+    pendingComments.length > 0 ? "pending" : "published"
   );
   const [peopleFilter, setPeopleFilter] = useState<PeopleFilter>("todos");
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -103,6 +117,7 @@ export default function AdminPanel({
     count?: number;
     badge?: number;
   }[] = [
+    ...(admin ? ([{ id: "textos", label: "Textos", icon: Type }] as const) : []),
     {
       id: "fotos",
       label: "Fotografías",
@@ -110,12 +125,18 @@ export default function AdminPanel({
       count: photos.length,
       badge: pending.length,
     },
+    {
+      id: "comentarios",
+      label: "Comentarios",
+      icon: MessageSquare,
+      count: comments.length,
+      badge: pendingComments.length,
+    },
     ...(admin
       ? ([
-          { id: "textos", label: "Textos", icon: Type },
           {
             id: "personas",
-            label: "Personas",
+            label: "Usuarios",
             icon: Users,
             count: profiles.length,
           },
@@ -159,6 +180,7 @@ export default function AdminPanel({
   };
 
   const visiblePhotos = photos.filter((p) => p.status === photoFilter);
+  const visibleComments = comments.filter((c) => c.status === commentFilter);
 
   const visibleProfiles =
     peopleFilter === "todos"
@@ -229,6 +251,19 @@ export default function AdminPanel({
     });
   };
 
+  const moderateComment = (comment: Comment, status: PhotoStatus) => {
+    const note =
+      status === "rejected"
+        ? (prompt(`Motivo del descarte del comentario de ${comment.authorName} (opcional):`) ?? "")
+        : "";
+    run(() => setCommentStatus(comment.id, status, note));
+  };
+
+  const removeComment = (comment: Comment) => {
+    if (!confirm("¿Eliminar este comentario? No se puede deshacer.")) return;
+    run(() => deleteComment(comment.id));
+  };
+
   /** Los botones de moderación de una fila, según lo que falte por hacer. */
   const rowActions = (p: Photo) => {
     if (p.status === "published") return null;
@@ -293,14 +328,82 @@ export default function AdminPanel({
     </li>
   );
 
+  /** Los mismos botones de moderación que las fotos, para un comentario. */
+  const commentRowActions = (c: Comment) => {
+    return (
+      <span className="row-actions">
+        {c.status !== "published" && (
+          <Button
+            variant="ghost"
+            className="approve-btn"
+            title="Aprobar y publicar"
+            aria-label="Aprobar"
+            disabled={busy}
+            onClick={() => moderateComment(c, "published")}
+          >
+            <Check aria-hidden size={14} strokeWidth={2} />
+          </Button>
+        )}
+        {c.status === "pending" && (
+          <Button
+            variant="ghost"
+            className="reject-btn"
+            title="Descartar"
+            aria-label="Descartar"
+            disabled={busy}
+            onClick={() => moderateComment(c, "rejected")}
+          >
+            <X aria-hidden size={14} strokeWidth={2} />
+          </Button>
+        )}
+        <Button
+          variant="ghost"
+          className="delete-btn"
+          title="Eliminar"
+          aria-label="Eliminar"
+          disabled={busy}
+          onClick={() => removeComment(c)}
+        >
+          <Trash2 aria-hidden size={14} strokeWidth={1.8} />
+        </Button>
+      </span>
+    );
+  };
+
+  const commentRow = (c: Comment) => (
+    <li key={c.id}>
+      <div className="photo-row comment-row">
+        <span className="photo-row-text">
+          <span className="photo-row-title">
+            {c.photoTitle || "(sin foto)"}
+          </span>
+          <span className="photo-row-meta">
+            <span className={`status-dot ${c.status}`} aria-hidden />
+            {c.authorName}
+            <span className="photo-row-author">
+              · {new Date(c.createdAt).toLocaleDateString("es-ES")}
+            </span>
+          </span>
+          <span className="comment-row-body">{c.body}</span>
+        </span>
+      </div>
+      {commentRowActions(c)}
+    </li>
+  );
+
   const emptyNote =
     photoFilter === "pending"
       ? "Nada por revisar. Todo al día."
       : "No hay fotografías con este filtro.";
 
+  const emptyCommentNote =
+    commentFilter === "pending"
+      ? "Nada por revisar. Todo al día."
+      : "No hay comentarios con este filtro.";
+
   return (
     <main className="admin">
-      <header className="admin-header">
+      <header className={`admin-header${scrolled ? " scrolled" : ""}`}>
         <div className="admin-header-left">
           <Link href="/" className="back-link">
             <ArrowLeft aria-hidden size={14} strokeWidth={1.8} /> Volver al mapa
@@ -385,7 +488,9 @@ export default function AdminPanel({
               <p className="hint pane-note">{emptyNote}</p>
             )}
 
-            <ul className="photo-list">{visiblePhotos.map(photoRow)}</ul>
+            <ul className="photo-list" onScroll={onScroll}>
+              {visiblePhotos.map(photoRow)}
+            </ul>
           </aside>
 
           <section className="photo-detail-pane">
@@ -443,7 +548,7 @@ export default function AdminPanel({
                   </div>
                 </div>
 
-                <div className="photo-form-body">
+                <div className="photo-form-body" onScroll={onScroll}>
                   <PhotoFields
                     key={draft.id ?? "nueva"}
                     draft={draft}
@@ -485,8 +590,39 @@ export default function AdminPanel({
         </div>
       )}
 
+      {tab === "comentarios" && (
+        <div className="pane pane-centered" onScroll={onScroll}>
+          <h2>Comentarios</h2>
+
+          <div className="filter-row" role="group" aria-label="Filtrar por estado">
+            {PHOTO_FILTERS.map((status) => (
+              <Button
+                key={status}
+                variant="ghost"
+                className={`filter-chip filter-chip-${status}${
+                  commentFilter === status ? " active" : ""
+                }`}
+                aria-pressed={commentFilter === status}
+                onClick={() => setCommentFilter(status)}
+              >
+                {STATUS_LABELS_PLURAL[status]}
+                <span className="filter-count">
+                  {comments.filter((c) => c.status === status).length}
+                </span>
+              </Button>
+            ))}
+          </div>
+
+          {visibleComments.length === 0 && (
+            <p className="hint pane-note">{emptyCommentNote}</p>
+          )}
+
+          <ul className="photo-list">{visibleComments.map(commentRow)}</ul>
+        </div>
+      )}
+
       {tab === "textos" && admin && (
-        <div className="pane text-pane">
+        <div className="pane pane-centered" onScroll={onScroll}>
           <div className="photo-form-head">
             <h2>Textos de la web</h2>
             {siteDirty && (
@@ -542,8 +678,8 @@ export default function AdminPanel({
       )}
 
       {tab === "personas" && admin && (
-        <div className="pane">
-          <h2>Personas</h2>
+        <div className="pane pane-centered" onScroll={onScroll}>
+          <h2>Usuarios</h2>
 
           <div className="filter-row" role="group" aria-label="Filtrar por tipo">
             <Button

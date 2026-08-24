@@ -1,4 +1,4 @@
-import type { Photo, PhotoRow } from "./types";
+import type { Comment, CommentRow, Photo, PhotoRow } from "./types";
 
 export type { Photo } from "./types";
 
@@ -69,6 +69,45 @@ export function toPhoto(
     createdAt: row.created_at,
     likes: row.likes?.[0]?.count ?? 0,
     comments: row.comments?.[0]?.count ?? 0,
+  };
+}
+
+/** Columnas de `comments` a pedir para poder mapear con `toComment`.
+ * Los alias `!comments_..._fkey` fuerzan la relación a "uno", si no
+ * PostgREST no puede distinguirla de un "muchos" y el tipo generado sale
+ * como array. */
+export const COMMENT_SELECT =
+  "id, photo_id, user_id, body, status, review_note, created_at, author:profiles!comments_user_id_fkey(display_name), photo:photos!comments_photo_id_fkey(title, slug)";
+
+type CommentAuthor = { display_name: string };
+type CommentPhoto = { title: string; slug: string };
+
+/**
+ * Fila de la base de datos → objeto de la interfaz.
+ *
+ * Sin tipos generados desde el esquema, PostgREST no siempre puede resolver
+ * si `author`/`photo` son un objeto (relación "uno") o un array (relación
+ * "muchos"), así que se aceptan las dos formas y aquí se normalizan.
+ */
+export function toComment(
+  row: CommentRow & {
+    author?: CommentAuthor | CommentAuthor[] | null;
+    photo?: CommentPhoto | CommentPhoto[] | null;
+  }
+): Comment {
+  const author = Array.isArray(row.author) ? row.author[0] : row.author;
+  const photo = Array.isArray(row.photo) ? row.photo[0] : row.photo;
+  return {
+    id: row.id,
+    photoId: row.photo_id,
+    photoTitle: photo?.title ?? "",
+    photoSlug: photo?.slug ?? "",
+    userId: row.user_id,
+    authorName: author?.display_name || "Anónimo",
+    body: row.body,
+    status: row.status,
+    reviewNote: row.review_note,
+    createdAt: row.created_at,
   };
 }
 

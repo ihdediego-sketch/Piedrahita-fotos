@@ -6,7 +6,7 @@ import { X, Download, Maximize2, Minimize2, Heart, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import type { Photo } from "@/lib/photos";
-import { isStaff, type Comment, type Viewer } from "@/lib/types";
+import { isStaff, STATUS_LABELS, type Comment, type Viewer } from "@/lib/types";
 import { addComment, deleteComment, listComments, toggleLike } from "@/app/actions/social";
 
 type Props = {
@@ -232,6 +232,11 @@ export default function PhotoModal({
                     <span className="comment-date">
                       {dateFormat.format(new Date(c.createdAt))}
                     </span>
+                    {c.status !== "published" && (
+                      <span className={`comment-status ${c.status}`}>
+                        {STATUS_LABELS[c.status]}
+                      </span>
+                    )}
                     {(c.userId === viewer?.id || isStaff(viewer)) && (
                       <Button
                         variant="ghost"

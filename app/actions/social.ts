@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import type { Comment } from "@/lib/types";
+import { COMMENT_SELECT, toComment } from "@/lib/photos";
+import type { Comment, PhotoStatus } from "@/lib/types";
 
 export type LikeResult =
   | { ok: true; liked: boolean; likes: number }
@@ -46,6 +47,9 @@ export type CommentResult =
   | { ok: true; comment: Comment }
   | { ok: false; error: string };
 
+/** Igual que las fotos: un colaborador o admin publica al momento, el resto
+ * envía a revisión (lo fuerza también el trigger `guard_comment`, esto es
+ * solo para pedir lo que se quiere). */
 export async function addComment(
   photoId: string,
   body: string
@@ -61,27 +65,28 @@ export async function addComment(
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "Entra para comentar." };
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+  const canPublish = profile?.role === "admin" || profile?.role === "colaborador";
+
   const { data, error } = await supabase
     .from("comments")
-    .insert({ photo_id: photoId, user_id: user.id, body: text })
-    .select("id, photo_id, user_id, body, created_at, author:profiles(display_name)")
+    .insert({
+      photo_id: photoId,
+      user_id: user.id,
+      body: text,
+      status: canPublish ? "published" : "pending",
+    })
+    .select(COMMENT_SELECT)
     .single();
 
   if (error) return { ok: false, error: error.message };
 
   revalidatePath("/", "layout");
-  return {
-    ok: true,
-    comment: {
-      id: data.id,
-      photoId: data.photo_id,
-      userId: data.user_id,
-      authorName:
-        (data.author as unknown as { display_name: string } | null)?.display_name ?? "",
-      body: data.body,
-      createdAt: data.created_at,
-    },
-  };
+  return { ok: true, comment: toComment(data) };
 }
 
 /** Borra un comentario propio; staff puede borrar cualquiera (lo decide la RLS). */
@@ -102,22 +107,35 @@ export async function deleteComment(
   return { ok: true };
 }
 
-/** Los comentarios de una foto, para cargarlos al abrir el modal. */
+/** Los comentarios de una foto, para cargarlos al abrir el modal. La RLS ya
+ * limita lo que vuelve: publicados para cualquiera, más los propios. */
 export async function listComments(photoId: string): Promise<Comment[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("comments")
-    .select("id, photo_id, user_id, body, created_at, author:profiles(display_name)")
+    .select(COMMENT_SELECT)
     .eq("photo_id", photoId)
     .order("created_at", { ascending: true });
 
-  return (data ?? []).map((c) => ({
-    id: c.id,
-    photoId: c.photo_id,
-    userId: c.user_id,
-    authorName:
-      (c.author as unknown as { display_name: string } | null)?.display_name || "Anónimo",
-    body: c.body,
-    createdAt: c.created_at,
-  }));
+  return (data ?? []).map(toComment);
+}
+
+/** Aprobar, rechazar o retirar un comentario. Reservado a staff por RLS. */
+export async function setCommentStatus(
+  id: string,
+  status: PhotoStatus,
+  note?: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("comments")
+    .update({ status, review_note: note?.trim() || null })
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
+
+  if (error) return { ok: false, error: error.message };
+  if (!data) return { ok: false, error: "No tienes permiso para moderarlo." };
+  revalidatePath("/", "layout");
+  return { ok: true };
 }

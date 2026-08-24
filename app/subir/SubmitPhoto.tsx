@@ -1,37 +1,44 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Check, Trash2 } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PhotoFields, { emptyDraft, toDraft, type Draft } from "@/components/PhotoEditor";
-import { deletePhoto, savePhoto } from "@/app/actions/photos";
-import { defaultDateLabel } from "@/lib/photos";
-import {
-  STATUS_LABELS,
-  type Photo,
-  type SiteContent,
-  type Viewer,
-} from "@/lib/types";
+import { savePhoto } from "@/app/actions/photos";
+import { useScrollBorder } from "@/lib/useScrollBorder";
+import type { Photo, SiteContent } from "@/lib/types";
 
 export default function SubmitPhoto({
-  viewer,
   mine,
   site,
   canPublish,
 }: {
-  viewer: Viewer;
   mine: Photo[];
   site: SiteContent;
   canPublish: boolean;
 }) {
   const router = useRouter();
+  const { scrolled, onScroll } = useScrollBorder();
   const [draft, setDraft] = useState<Draft>(emptyDraft());
   const [editing, setEditing] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [pending, startTransition] = useTransition();
+
+  // Llegar desde «Mi historial» con ?edit=<id> abre directamente esa foto.
+  // Se lee de window.location en vez de useSearchParams para no obligar a
+  // esta página a envolverse en un <Suspense>.
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("edit");
+    if (!id) return;
+    const photo = mine.find((p) => p.id === id);
+    if (!photo) return;
+    setDraft(toDraft(photo));
+    setEditing(photo.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const reset = () => {
     setDraft(emptyDraft());
@@ -56,19 +63,9 @@ export default function SubmitPhoto({
     });
   };
 
-  const remove = (photo: Photo) => {
-    if (!confirm(`¿Retirar «${photo.title}»?`)) return;
-    startTransition(async () => {
-      const res = await deletePhoto(photo.id);
-      if (!res.ok) return setError(res.error);
-      if (editing === photo.id) reset();
-      router.refresh();
-    });
-  };
-
   return (
     <main className="admin">
-      <header className="admin-header">
+      <header className={`admin-header${scrolled ? " scrolled" : ""}`}>
         <div>
           <Link href="/" className="back-link">
             <ArrowLeft aria-hidden size={14} strokeWidth={1.8} /> Volver al mapa
@@ -104,7 +101,7 @@ export default function SubmitPhoto({
 
       {error && <p className="admin-error">{error}</p>}
 
-      <div className="pane">
+      <div className="pane" onScroll={onScroll}>
         <PhotoFields
           key={editing ?? "nueva"}
           draft={draft}
@@ -113,55 +110,9 @@ export default function SubmitPhoto({
         />
       </div>
 
-      {mine.length > 0 && (
-        <section className="pane">
-          <h2>Tus aportaciones</h2>
-          <ul className="photo-list">
-            {mine.map((p) => (
-              <li key={p.id}>
-                <Button
-                  variant="ghost"
-                  className={`photo-row${editing === p.id ? " selected" : ""}`}
-                  onClick={() => {
-                    setDraft(toDraft(p));
-                    setEditing(p.id);
-                    setDone(false);
-                  }}
-                  // Una vez publicada o rechazada, solo la toca un colaborador
-                  disabled={p.status !== "pending" && !canPublish}
-                >
-                  <span className="thumb">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    {p.image && <img src={p.image} alt="" />}
-                  </span>
-                  <span className="photo-row-text">
-                    <span className="photo-row-title">{p.title}</span>
-                    <span className="photo-row-date">
-                      <span className={`status-tag ${p.status}`}>
-                        {STATUS_LABELS[p.status]}
-                      </span>
-                      {p.dateLabel || defaultDateLabel(p)}
-                    </span>
-                    {p.status === "rejected" && p.reviewNote && (
-                      <span className="hint">Motivo: {p.reviewNote}</span>
-                    )}
-                  </span>
-                </Button>
-                {(p.status === "pending" || viewer?.role === "admin") && (
-                  <Button
-                    variant="ghost"
-                    className="delete-btn"
-                    onClick={() => remove(p)}
-                    aria-label="Retirar"
-                  >
-                    <Trash2 aria-hidden size={14} strokeWidth={1.8} />
-                  </Button>
-                )}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      <p className="hint pane-note">
+        <Link href="/historial">Ver tus fotografías y comentarios enviados →</Link>
+      </p>
     </main>
   );
 }

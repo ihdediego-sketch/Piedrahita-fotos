@@ -1,7 +1,8 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
-import { avatarUrl, toPhoto } from "@/lib/photos";
+import { COMMENT_SELECT, avatarUrl, toComment, toPhoto } from "@/lib/photos";
 import type {
+  Comment,
   Photo,
   PhotoStatus,
   Profile,
@@ -101,6 +102,45 @@ export async function getManagedPhotos(status?: PhotoStatus): Promise<Photo[]> {
   return (data ?? []).map(toPhoto);
 }
 
+/** Los comentarios que puede ver el panel: staff todos, para moderar. */
+export async function getManagedComments(status?: PhotoStatus): Promise<Comment[]> {
+  const supabase = await createClient();
+  let query = supabase
+    .from("comments")
+    .select(COMMENT_SELECT)
+    .order("created_at", { ascending: false });
+  if (status) query = query.eq("status", status);
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return (data ?? []).map(toComment);
+}
+
+/** Las fotos que ha enviado quien mira, sean cual sea su estado. */
+export async function getMyPhotos(userId: string): Promise<Photo[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("photos")
+    .select(PHOTO_SELECT)
+    .eq("author_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return (data ?? []).map(toPhoto);
+}
+
+/** Los comentarios que ha escrito quien mira, sea cual sea su estado. */
+export async function getMyComments(userId: string): Promise<Comment[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("comments")
+    .select(COMMENT_SELECT)
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return (data ?? []).map(toComment);
+}
 
 /** Ids de las fotos a las que el visitante ya ha dado me gusta. */
 export async function getMyLikes(): Promise<string[]> {
