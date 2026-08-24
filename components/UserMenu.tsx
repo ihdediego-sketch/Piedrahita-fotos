@@ -94,6 +94,10 @@ export default function UserMenu({
 
           {/* Primero lo que se usa a diario, y salir al final, separado. */}
           <div className="user-actions">
+            <Link href="/subir" role="menuitem" onClick={() => setOpen(false)}>
+              <ImagePlus aria-hidden size={17} strokeWidth={1.7} />
+              Enviar fotos
+            </Link>
             {isStaff(viewer) && (
               <Link href="/admin" role="menuitem" onClick={() => setOpen(false)}>
                 <Settings aria-hidden size={17} strokeWidth={1.7} />

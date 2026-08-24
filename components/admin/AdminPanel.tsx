@@ -241,12 +241,6 @@ export default function AdminPanel({
     run(() => setPhotoStatus(photo.id, status, note));
   };
 
-  const deactivate = (photo: Photo) => {
-    if (!confirm(`¿Desactivar «${photo.title}»? Deja de verse en el mapa.`))
-      return;
-    run(() => setPhotoStatus(photo.id, "rejected"));
-  };
-
   const moderateComment = (comment: Comment, status: PhotoStatus) => {
     const note =
       status === "rejected"
@@ -535,29 +529,6 @@ export default function AdminPanel({
                     canFeature
                   />
 
-                  {draft.id && admin && draft.status !== "rejected" && (
-                    <section className="danger-zone">
-                      <h3>Desactivar</h3>
-                      <div className="danger-zone-row">
-                        <p className="hint">
-                          Deja de verse en el mapa. No se borra: se puede
-                          volver a aprobar cuando haga falta.
-                        </p>
-                        <Button
-                          variant="ghost"
-                          className="form-action delete-btn"
-                          disabled={busy}
-                          onClick={() => {
-                            const p = photos.find((x) => x.id === draft.id);
-                            if (p) deactivate(p);
-                          }}
-                        >
-                          <EyeOff aria-hidden size={15} strokeWidth={1.8} />
-                          Desactivar fotografía
-                        </Button>
-                      </div>
-                    </section>
-                  )}
                 </div>
               </div>
             ) : (

@@ -9,6 +9,8 @@ import {
   Check,
   EyeOff,
   Heart,
+  ImageIcon,
+  MessageSquare,
   Pencil,
   Save,
   Trash2,
@@ -166,6 +168,8 @@ export default function ProfileForm({
       <div className="pane">
         {error && <p className="admin-error">{error}</p>}
 
+        <h2 className="section-heading">Datos personales</h2>
+
         {/* Una sola tarjeta: la foto, el nombre y la presentación son partes
             del mismo perfil, no pasos separados. */}
         <section className="profile-card">
@@ -252,9 +256,15 @@ export default function ProfileForm({
           </div>
         </section>
 
+        <h2 className="section-heading">Tu actividad</h2>
+
         <div className="history-columns">
           <section>
-            <h2>Tus fotografías</h2>
+            <h3>
+              <ImageIcon aria-hidden size={14} strokeWidth={1.8} />
+              Tus fotografías
+              <span className="section-count">{photos.length}</span>
+            </h3>
             {photos.length === 0 ? (
               <p className="hint pane-note">Aún no has enviado ninguna fotografía.</p>
             ) : (
@@ -309,7 +319,11 @@ export default function ProfileForm({
           </section>
 
           <section>
-            <h2>Tus comentarios</h2>
+            <h3>
+              <MessageSquare aria-hidden size={14} strokeWidth={1.8} />
+              Tus comentarios
+              <span className="section-count">{comments.length}</span>
+            </h3>
             {comments.length === 0 ? (
               <p className="hint pane-note">Aún no has escrito ningún comentario.</p>
             ) : (
@@ -355,7 +369,11 @@ export default function ProfileForm({
           </section>
 
           <section>
-            <h2>Tus me gusta</h2>
+            <h3>
+              <Heart aria-hidden size={14} strokeWidth={1.8} />
+              Tus me gusta
+              <span className="section-count">{likes.length}</span>
+            </h3>
             {likes.length === 0 ? (
               <p className="hint pane-note">Aún no has dado me gusta a ninguna fotografía.</p>
             ) : (
