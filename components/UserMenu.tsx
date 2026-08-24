@@ -7,7 +7,13 @@ import { Button } from "@/components/ui/button";
 import { signOut } from "@/app/auth/actions";
 import { ROLE_LABELS, isStaff, type Viewer } from "@/lib/types";
 
-export default function UserMenu({ viewer }: { viewer: Viewer }) {
+export default function UserMenu({
+  viewer,
+  showSubmit = true,
+}: {
+  viewer: Viewer;
+  showSubmit?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -39,14 +45,17 @@ export default function UserMenu({ viewer }: { viewer: Viewer }) {
 
   return (
     <div className="user-menu" ref={ref}>
-      <Link
-        href="/subir"
-        className="user-chip user-chip-submit"
-        title="Enviar una fotografía"
-      >
-        <ImagePlus aria-hidden size={17} strokeWidth={1.8} />
-        Enviar fotos
-      </Link>
+      {showSubmit && (
+        <Button
+          variant="ghost"
+          className="user-chip-submit"
+          render={<Link href="/subir" title="Enviar una fotografía" />}
+          nativeButton={false}
+        >
+          <ImagePlus aria-hidden size={17} strokeWidth={1.8} />
+          Enviar fotos
+        </Button>
+      )}
 
       <Button
         variant="ghost"
@@ -88,7 +97,7 @@ export default function UserMenu({ viewer }: { viewer: Viewer }) {
             {isStaff(viewer) && (
               <Link href="/admin" role="menuitem" onClick={() => setOpen(false)}>
                 <Settings aria-hidden size={17} strokeWidth={1.7} />
-                Panel de control
+                Admin
               </Link>
             )}
             <Link href="/perfil" role="menuitem" onClick={() => setOpen(false)}>

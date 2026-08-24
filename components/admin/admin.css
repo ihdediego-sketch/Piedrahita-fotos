@@ -1113,7 +1113,7 @@
 .profile-page > .admin-header,
 .profile-page > .pane {
   width: 100%;
-  max-width: 960px;
+  max-width: 1180px;
   margin-inline: auto;
 }
 
@@ -1204,12 +1204,12 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Tus fotografías y tus comentarios, lado a lado: son dos listas del mismo
-   tamaño, no hace falta que una se lea antes que la otra. */
+/* Fotografías, comentarios y me gusta, lado a lado: son tres listas del
+   mismo tamaño, no hace falta que una se lea antes que otra. */
 .history-columns {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2.5rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
 }
 
 /* Redondo y cuadrado (1/1) frente al 4/3 de las fotos del archivo: así se
@@ -1263,6 +1263,15 @@
   opacity: 1;
 }
 
+@media (max-width: 1020px) {
+  .history-columns {
+    grid-template-columns: 1fr 1fr;
+  }
+  .history-columns > section:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
 @media (max-width: 760px) {
   .profile-identity {
     grid-template-columns: 1fr;
@@ -1292,6 +1301,9 @@
   .history-columns {
     grid-template-columns: 1fr;
     gap: 2rem;
+  }
+  .history-columns > section:last-child {
+    grid-column: 1;
   }
 }
 

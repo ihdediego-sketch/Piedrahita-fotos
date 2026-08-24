@@ -319,14 +319,16 @@ export default function PhotoModal({
                   onChange={(e) => setDraft(e.target.value)}
                   onFocus={askToJoin}
                 />
-                <Button
-                  type="submit"
-                  variant="ghost"
-                  className="save-btn"
-                  disabled={pending || (!!viewer && !draft.trim())}
-                >
-                  Comentar
-                </Button>
+                {draft.trim() && (
+                  <Button
+                    type="submit"
+                    variant="ghost"
+                    className="save-btn"
+                    disabled={pending}
+                  >
+                    Comentar
+                  </Button>
+                )}
               </form>
             )}
           </footer>

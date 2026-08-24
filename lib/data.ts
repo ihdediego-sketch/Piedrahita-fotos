@@ -157,6 +157,23 @@ export async function getMyLikes(): Promise<string[]> {
   return (data ?? []).map((r) => r.photo_id as string);
 }
 
+/** Las fotos publicadas a las que quien mira ha dado me gusta. */
+export async function getMyLikedPhotos(userId: string): Promise<Photo[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("likes")
+    .select(`photo:photos!inner(${PHOTO_SELECT})`)
+    .eq("user_id", userId)
+    .eq("photo.status", "published")
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return (data ?? [])
+    .map((r) => (Array.isArray(r.photo) ? r.photo[0] : r.photo))
+    .filter(Boolean)
+    .map(toPhoto);
+}
+
 
 /** Listado de personas para el panel. Solo tiene sentido para un admin. */
 export async function getProfiles(): Promise<Profile[]> {

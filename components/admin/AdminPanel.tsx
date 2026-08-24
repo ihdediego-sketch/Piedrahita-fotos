@@ -389,7 +389,7 @@ export default function AdminPanel({
           <Link href="/" className="back-link">
             <ArrowLeft aria-hidden size={14} strokeWidth={1.8} /> Volver al mapa
           </Link>
-          <h1>Panel de control</h1>
+          <h1>Admin</h1>
         </div>
 
         <nav
@@ -429,7 +429,7 @@ export default function AdminPanel({
         </nav>
 
         <div className="admin-actions">
-          <UserMenu viewer={viewer} />
+          <UserMenu viewer={viewer} showSubmit={false} />
         </div>
       </header>
 

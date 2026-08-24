@@ -10,7 +10,7 @@ import {
 import { isAdmin, isStaff } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Piedrahíta — Panel de control" };
+export const metadata = { title: "Piedrahíta — Admin" };
 
 export default async function AdminPage() {
   const viewer = await getViewer();

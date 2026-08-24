@@ -532,7 +532,7 @@ div.map-root,
 /* Hueco a la derecha para el aspa de cerrar, que va posicionada sobre esta
    esquina del modal */
 .modal-head {
-  padding: 1.7rem 3.6rem 1.1rem 2rem;
+  padding: 1rem 3.6rem 0.7rem 2rem;
   border-bottom: 1px solid var(--line);
 }
 
@@ -545,7 +545,7 @@ div.map-root,
   letter-spacing: 0.28em;
   text-transform: uppercase;
   color: var(--ink-soft);
-  margin-top: 0.55rem;
+  margin-top: 0.3rem;
 }
 
 .modal-featured {
@@ -730,7 +730,7 @@ div.map-root,
   .modal-backdrop:not(.fullscreen) .modal-head {
     grid-column: 2;
     grid-row: 1;
-    padding: 1.8rem 3.6rem 1.2rem 2.2rem;
+    padding: 1.1rem 3.6rem 0.8rem 2.2rem;
     border-left: 1px solid var(--ink);
   }
 
@@ -833,7 +833,7 @@ div.map-root,
     right: 1.2rem;
   }
   .modal-head {
-    padding: 1.2rem 3.2rem 1rem 1.3rem;
+    padding: 0.8rem 3.2rem 0.6rem 1.3rem;
   }
   /* Con la misma especificidad que la regla base de una columna, para que
      gane sobre ella y no al revés. */
@@ -982,15 +982,14 @@ div.map-root,
 /* El botón de enviar vive a la izquierda de la cara, siempre a mano: es la
    acción que trae a la gente registrada de vuelta más a menudo. */
 .user-chip-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   height: 40px;
   padding: 0 1.1rem;
-  border-color: transparent;
-  background: none;
-  color: var(--ink);
-}
-
-.user-chip-submit:hover {
-  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   color: var(--ink);
 }
 
@@ -1203,7 +1202,7 @@ div.map-root,
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin-bottom: 0.9rem;
+  margin-bottom: 0.4rem;
 }
 
 .like-btn {
@@ -1319,7 +1318,7 @@ div.map-root,
   flex-direction: column;
   align-items: flex-start;
   gap: 0.6rem;
-  margin-top: 1.3rem;
+  margin-top: 0.5rem;
   max-width: 58ch;
 }
 
@@ -1363,7 +1362,7 @@ div.map-root,
 /* La invitación que ve un visitante donde el registrado tiene el formulario
    de comentarios. Ocupa el mismo hueco para que el salto no descoloque. */
 .join-cta {
-  margin-top: 1.3rem;
+  margin-top: 0.5rem;
   padding: 1.1rem 1.2rem;
   max-width: 58ch;
   border: 1px solid var(--ink-soft);

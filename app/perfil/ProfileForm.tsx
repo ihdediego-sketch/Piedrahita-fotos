@@ -8,6 +8,7 @@ import {
   Camera,
   Check,
   EyeOff,
+  Heart,
   Pencil,
   Save,
   Trash2,
@@ -19,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { saveProfile } from "@/app/actions/profile";
 import { setPhotoStatus } from "@/app/actions/photos";
-import { setCommentStatus } from "@/app/actions/social";
+import { setCommentStatus, toggleLike } from "@/app/actions/social";
 import { defaultDateLabel, avatarUrl } from "@/lib/photos";
 import { ACCEPTED_AVATAR_EXT, uploadAvatarImage } from "@/lib/upload";
 import {
@@ -35,13 +36,16 @@ export default function ProfileForm({
   viewer,
   photos,
   comments,
+  likedPhotos,
 }: {
   viewer: NonNullable<Viewer>;
   photos: Photo[];
   comments: Comment[];
+  likedPhotos: Photo[];
 }) {
   const router = useRouter();
   const [busy, startHistoryTransition] = useTransition();
+  const [likes, setLikes] = useState(likedPhotos);
   const [displayName, setDisplayName] = useState(viewer.displayName);
   const [bio, setBio] = useState(viewer.bio);
   const [avatarPath, setAvatarPath] = useState(viewer.avatarPath);
@@ -107,6 +111,14 @@ export default function ProfileForm({
     startHistoryTransition(async () => {
       await setCommentStatus(comment.id, "rejected");
       router.refresh();
+    });
+  };
+
+  const unlike = (photo: Photo) => {
+    setLikes((prev) => prev.filter((p) => p.id !== photo.id));
+    startHistoryTransition(async () => {
+      const res = await toggleLike(photo.id);
+      if (!res.ok || res.liked) router.refresh();
     });
   };
 
@@ -335,6 +347,46 @@ export default function ProfileForm({
                           <X aria-hidden size={14} strokeWidth={1.8} />
                         </Button>
                       )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          <section>
+            <h2>Tus me gusta</h2>
+            {likes.length === 0 ? (
+              <p className="hint pane-note">Aún no has dado me gusta a ninguna fotografía.</p>
+            ) : (
+              <ul className="photo-list">
+                {likes.map((p) => (
+                  <li key={p.id}>
+                    <div className="photo-row">
+                      <span className="thumb">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        {p.image && <img src={p.image} alt="" />}
+                      </span>
+                      <span className="photo-row-text">
+                        <span className="photo-row-title">
+                          {p.title || "(sin título)"}
+                        </span>
+                        <span className="photo-row-meta">
+                          {p.dateLabel || defaultDateLabel(p)}
+                        </span>
+                      </span>
+                    </div>
+                    <span className="row-actions">
+                      <Button
+                        variant="ghost"
+                        className="reject-btn"
+                        title="Quitar me gusta"
+                        aria-label="Quitar me gusta"
+                        disabled={busy}
+                        onClick={() => unlike(p)}
+                      >
+                        <Heart aria-hidden size={14} strokeWidth={1.8} fill="currentColor" />
+                      </Button>
                     </span>
                   </li>
                 ))}
