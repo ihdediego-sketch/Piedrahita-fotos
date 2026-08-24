@@ -67,10 +67,12 @@
   --sidebar-ring: var(--ink-soft);
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 }
 
 html,
@@ -567,6 +569,40 @@ div.map-root,
   line-height: 1.7;
   color: var(--ink);
   max-width: 58ch;
+}
+
+.modal-description p {
+  margin: 0 0 0.9em;
+}
+.modal-description p:last-child {
+  margin-bottom: 0;
+}
+.modal-description ul,
+.modal-description ol {
+  margin: 0 0 0.9em;
+  padding-left: 1.3em;
+}
+.modal-description ul {
+  list-style: disc;
+}
+.modal-description ol {
+  list-style: decimal;
+}
+.modal-description li {
+  margin: 0.2em 0;
+}
+.modal-description a {
+  color: var(--brown);
+  text-decoration: underline;
+}
+.modal-description blockquote {
+  margin: 0 0 0.9em;
+  padding-left: 0.9em;
+  border-left: 2px solid var(--line);
+  color: var(--ink-soft);
+}
+.modal-description strong {
+  font-weight: 600;
 }
 
 .modal-close {
@@ -1411,4 +1447,79 @@ div.map-root,
   .user-chip-guest-short {
     display: inline;
   }
+}
+
+/* ---------- Página no encontrada ---------- */
+
+.not-found {
+  position: relative;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem;
+  text-align: center;
+  overflow: hidden;
+}
+
+/* La plaza de fondo, ya teñida de marrón en el propio PNG (ver
+   public/pilon-404.png): de fondo real, no una fila más del layout, así
+   que va en un pseudo-elemento y no compite con el contenido por el centrado
+   ni por el flujo. */
+.not-found::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: url("/pilon-404.png");
+  background-repeat: no-repeat;
+  background-position: center 62%;
+  background-size: min(760px, 82vw) auto;
+  opacity: 0.45;
+}
+
+.not-found > * {
+  position: relative;
+  z-index: 1;
+}
+
+.not-found-code {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(3.2rem, 11vw, 5rem);
+  line-height: 1;
+  color: var(--brown);
+}
+
+.not-found h1 {
+  font-size: 1.3rem;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.not-found p {
+  max-width: 40ch;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  margin-bottom: 0.6rem;
+}
+
+.not-found-link {
+  display: inline-block;
+  padding: 0.7rem 1.4rem;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.not-found-link:hover {
+  background: var(--paper);
+  color: var(--ink);
 }

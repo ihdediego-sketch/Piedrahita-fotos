@@ -51,6 +51,10 @@ export default function ProfileForm({
   const [displayName, setDisplayName] = useState(viewer.displayName);
   const [bio, setBio] = useState(viewer.bio);
   const [avatarPath, setAvatarPath] = useState(viewer.avatarPath);
+  // Por defecto se enseña el perfil como texto; los campos solo aparecen
+  // al pulsar «Editar», para que la página se lea como una ficha y no
+  // como un formulario a medio rellenar.
+  const [editing, setEditing] = useState(false);
   // Vista previa local mientras sube, para no esperar a Storage
   const [preview, setPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -85,6 +89,7 @@ export default function ProfileForm({
       const res = await saveProfile({ displayName, bio, avatarPath });
       if (!res.ok) return setError(res.error);
       setSaved(true);
+      setEditing(false);
       router.refresh();
     });
   };
@@ -95,6 +100,16 @@ export default function ProfileForm({
     setAvatarPath(viewer.avatarPath);
     setError(null);
     setSaved(false);
+  };
+
+  const startEdit = () => {
+    setSaved(false);
+    setEditing(true);
+  };
+
+  const cancelEdit = () => {
+    discard();
+    setEditing(false);
   };
 
   const shown = preview ?? avatarUrl(avatarPath);
@@ -134,28 +149,29 @@ export default function ProfileForm({
           <h1>Tu perfil</h1>
         </div>
         <div className="admin-actions">
-          {saved && !dirty && (
+          {saved && !editing && (
             <span className="saved-note">
               Guardado
               <Check aria-hidden size={13} strokeWidth={2} />
             </span>
           )}
-          {/* Sin cambios no hay nada que guardar ni que deshacer: los botones sobran. */}
-          {dirty && (
+          {/* Fuera de edición no hay nada que guardar ni que deshacer: los
+              botones solo asoman mientras el formulario está abierto. */}
+          {editing && (
             <>
               <Button
                 variant="ghost"
                 className="discard-btn"
-                onClick={discard}
+                onClick={cancelEdit}
                 disabled={pending || uploading}
               >
-                Descartar
+                Cancelar
               </Button>
               <Button
                 variant="ghost"
                 className="form-action save-btn"
                 onClick={submit}
-                disabled={pending || uploading}
+                disabled={pending || uploading || !dirty}
               >
                 <Save aria-hidden size={15} strokeWidth={1.8} />
                 {pending ? "Guardando…" : "Guardar cambios"}
@@ -171,10 +187,94 @@ export default function ProfileForm({
         <h2 className="section-heading">Datos personales</h2>
 
         {/* Una sola tarjeta: la foto, el nombre y la presentación son partes
-            del mismo perfil, no pasos separados. */}
+            del mismo perfil, no pasos separados. Por defecto se lee como una
+            ficha; «Editar» es lo único que hace falta pulsar para que los
+            mismos huecos se vuelvan campos. */}
         <section className="profile-card">
-          <div className="profile-identity">
-            <label className="avatar-upload">
+          {editing ? (
+            <div className="profile-identity">
+              <label className="avatar-upload">
+                <div className="avatar-box">
+                  {shown ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={shown} alt={displayName} />
+                  ) : (
+                    <User aria-hidden size={40} strokeWidth={1.2} />
+                  )}
+                  <span className="avatar-overlay">
+                    <Camera aria-hidden size={18} strokeWidth={1.8} />
+                    {uploading ? "Subiendo…" : "Cambiar"}
+                  </span>
+                </div>
+                <Input
+                  type="file"
+                  accept={ACCEPTED_AVATAR_EXT}
+                  hidden
+                  disabled={uploading}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) upload(f);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+              {avatarPath && (
+                <Button
+                  variant="ghost"
+                  className="avatar-remove"
+                  onClick={() => {
+                    setAvatarPath("");
+                    setSaved(false);
+                  }}
+                >
+                  <Trash2 aria-hidden size={12} strokeWidth={1.8} /> Quitar foto
+                </Button>
+              )}
+
+              <div className="profile-identity-fields">
+                <span className="role-pill">{ROLE_LABELS[viewer.role]}</span>
+                <label>
+                  Nombre
+                  <Input
+                    type="text"
+                    value={displayName}
+                    maxLength={60}
+                    onChange={(e) => {
+                      setDisplayName(e.target.value);
+                      setSaved(false);
+                    }}
+                  />
+                  <span className="hint">
+                    Como quieres que te vean los demás: tu nombre, un apodo o
+                    la casa de la que vienes. Firma las fotografías que envías
+                    y los comentarios que escribes.
+                  </span>
+                </label>
+
+                <label>
+                  Sobre mí
+                  <Textarea
+                    rows={6}
+                    value={bio}
+                    maxLength={BIO_MAX}
+                    onChange={(e) => {
+                      setBio(e.target.value);
+                      setSaved(false);
+                    }}
+                  />
+                  <span className="hint">
+                    <span>
+                      Tu relación con Piedrahíta, lo que aportas al archivo…
+                    </span>
+                    <span className="char-count">
+                      {bio.length}/{BIO_MAX}
+                    </span>
+                  </span>
+                </label>
+              </div>
+            </div>
+          ) : (
+            <div className="profile-identity">
               <div className="avatar-box">
                 {shown ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -182,78 +282,30 @@ export default function ProfileForm({
                 ) : (
                   <User aria-hidden size={40} strokeWidth={1.2} />
                 )}
-                <span className="avatar-overlay">
-                  <Camera aria-hidden size={18} strokeWidth={1.8} />
-                  {uploading ? "Subiendo…" : "Cambiar"}
-                </span>
               </div>
-              <Input
-                type="file"
-                accept={ACCEPTED_AVATAR_EXT}
-                hidden
-                disabled={uploading}
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) upload(f);
-                  e.target.value = "";
-                }}
-              />
-            </label>
-            {avatarPath && (
-              <Button
-                variant="ghost"
-                className="avatar-remove"
-                onClick={() => {
-                  setAvatarPath("");
-                  setSaved(false);
-                }}
-              >
-                <Trash2 aria-hidden size={12} strokeWidth={1.8} /> Quitar foto
-              </Button>
-            )}
 
-            <div className="profile-identity-fields">
-              <span className="role-pill">{ROLE_LABELS[viewer.role]}</span>
-              <label>
-                Nombre
-                <Input
-                  type="text"
-                  value={displayName}
-                  maxLength={60}
-                  onChange={(e) => {
-                    setDisplayName(e.target.value);
-                    setSaved(false);
-                  }}
-                />
-                <span className="hint">
-                  Como quieres que te vean los demás: tu nombre, un apodo o
-                  la casa de la que vienes. Firma las fotografías que envías
-                  y los comentarios que escribes.
-                </span>
-              </label>
-
-              <label>
-                Sobre mí
-                <Textarea
-                  rows={6}
-                  value={bio}
-                  maxLength={BIO_MAX}
-                  onChange={(e) => {
-                    setBio(e.target.value);
-                    setSaved(false);
-                  }}
-                />
-                <span className="hint">
-                  <span>
-                    Tu relación con Piedrahíta, lo que aportas al archivo…
-                  </span>
-                  <span className="char-count">
-                    {bio.length}/{BIO_MAX}
-                  </span>
-                </span>
-              </label>
+              <div className="profile-identity-fields">
+                <span className="role-pill">{ROLE_LABELS[viewer.role]}</span>
+                <div className="profile-view-head">
+                  <h3 className="profile-name">
+                    {displayName || "(sin nombre)"}
+                  </h3>
+                  <Button
+                    variant="ghost"
+                    className="edit-profile-btn"
+                    onClick={startEdit}
+                  >
+                    <Pencil aria-hidden size={13} strokeWidth={1.8} /> Editar
+                  </Button>
+                </div>
+                {bio ? (
+                  <p className="profile-bio">{bio}</p>
+                ) : (
+                  <p className="hint">Todavía no has escrito nada sobre ti.</p>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </section>
 
         <h2 className="section-heading">Tu actividad</h2>

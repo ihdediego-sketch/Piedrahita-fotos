@@ -5,6 +5,7 @@ import Link from "next/link";
 import { X, Download, Maximize2, Minimize2, Heart, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import MarkdownText from "@/components/MarkdownText";
 import type { Photo } from "@/lib/photos";
 import { isStaff, STATUS_LABELS, type Comment, type Viewer } from "@/lib/types";
 import { addComment, listComments, setCommentStatus, toggleLike } from "@/app/actions/social";
@@ -220,7 +221,7 @@ export default function PhotoModal({
             contenido —descripción y comentarios— scrollando en medio. */}
         <div className="modal-body">
           <div className="modal-scroll">
-            <p className="modal-description">{photo.description}</p>
+            <MarkdownText className="modal-description" text={photo.description} />
 
             {photo.authorName && (
               <p className="modal-credit">Aportada por {photo.authorName}</p>

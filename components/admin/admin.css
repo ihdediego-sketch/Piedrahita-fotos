@@ -285,6 +285,87 @@
   min-height: auto;
 }
 
+.description-editor {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-input);
+  border-radius: var(--radius-sm);
+  background: var(--paper-solid);
+  overflow: hidden;
+}
+
+.description-editor-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+  padding: 0.35rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--brown-soft);
+}
+
+.description-editor-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.description-editor-btn:hover {
+  border-color: var(--brown);
+  color: var(--brown);
+}
+
+.description-editor-btn.active {
+  background: var(--brown);
+  border-color: var(--brown);
+  color: var(--paper) !important;
+}
+
+.description-editor-area {
+  font-family: inherit;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--ink);
+  letter-spacing: normal;
+  text-transform: none;
+  padding: 0.55rem 0.9rem;
+  min-height: 9rem;
+  outline: none;
+}
+
+.description-editor-area p {
+  margin: 0 0 0.7em;
+}
+.description-editor-area p:last-child {
+  margin-bottom: 0;
+}
+.description-editor-area ul,
+.description-editor-area ol {
+  margin: 0 0 0.7em;
+  padding-left: 1.3em;
+}
+.description-editor-area ul {
+  list-style: disc;
+}
+.description-editor-area ol {
+  list-style: decimal;
+}
+.description-editor-area blockquote {
+  margin: 0 0 0.7em;
+  padding-left: 0.9em;
+  border-left: 2px solid var(--line);
+  color: var(--ink-soft);
+}
+.description-editor-area a {
+  color: var(--brown);
+}
+
 .field-row {
   display: flex;
   gap: 1rem;
@@ -1173,6 +1254,50 @@
   display: flex;
   justify-content: space-between;
   gap: 1rem;
+}
+
+/* ---------- Perfil: vista de lectura ---------- */
+
+.profile-view-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.profile-name {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.edit-profile-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: auto;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--ink-soft);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.edit-profile-btn:hover {
+  color: var(--brown);
+  border-color: var(--brown);
+  background: none;
+}
+
+.profile-bio {
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--ink);
+  white-space: pre-wrap;
 }
 
 .char-count {
