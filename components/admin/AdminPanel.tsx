@@ -94,7 +94,6 @@ export default function AdminPanel({
   const [pristine, setPristine] = useState<Draft | null>(null);
   const [siteDraft, setSiteDraft] = useState(site);
   const [error, setError] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
   const [busy, startTransition] = useTransition();
 
   const tabs: {
@@ -197,11 +196,9 @@ export default function AdminPanel({
 
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>) => {
     setError(null);
-    setSaved(false);
     startTransition(async () => {
       const res = await fn();
       if (!res.ok) return setError(res.error ?? "No se pudo guardar.");
-      setSaved(true);
       router.refresh();
     });
   };
@@ -348,11 +345,6 @@ export default function AdminPanel({
         </nav>
 
         <div className="admin-actions">
-          {saved && (
-            <span className="saved-note">
-              Guardado <Check aria-hidden size={13} strokeWidth={2} />
-            </span>
-          )}
           <UserMenu viewer={viewer} />
         </div>
       </header>

@@ -16,13 +16,12 @@
   --fill-placeholder: #d8d8d8;
   /* Único color del proyecto: marca los hitos destacados sobre el mapa gris */
   --brown: #5c3317;
-  /* Versión clara y desaturada para rellenos grandes y estados secundarios
-     (card del rango, chips/tabs activos): un beige cálido, en la línea del
-     relleno de la plaza en el mapa (#ece3d5), lo bastante claro para llevar
-     texto oscuro (--ink) encima en vez de blanco. El marrón puro pesa
-     demasiado en superficies grandes, aunque en los botones de acento y los
-     hitos pequeños funciona bien tal cual. */
-  --brown-soft: #d3c8bb;
+  /* Versión casi blanca y muy desaturada para rellenos grandes y estados
+     secundarios (card del rango, chips/tabs activos): apenas un susurro
+     cálido sobre blanco, con texto oscuro (--ink) encima en vez de blanco.
+     El marrón puro pesa demasiado en superficies grandes, aunque en los
+     botones de acento y los hitos pequeños funciona bien tal cual. */
+  --brown-soft: #f5f1ea;
   --red: #a01c1c;
   --green: #1c6b3a;
   --amber: #8a6a1c;
