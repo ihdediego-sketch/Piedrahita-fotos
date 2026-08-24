@@ -6,7 +6,7 @@ import maplibregl from "maplibre-gl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import DescriptionEditor from "@/components/DescriptionEditor";
+import MarkdownEditor from "@/components/MarkdownEditor";
 import { ACCEPTED_IMAGE_EXT, defaultDateLabel, imageUrl } from "@/lib/photos";
 import { uploadPhotoImage } from "@/lib/upload";
 import type { Photo, PhotoStatus } from "@/lib/types";
@@ -248,9 +248,10 @@ export default function PhotoFields({
 
         <label>
           Descripción
-          <DescriptionEditor
+          <MarkdownEditor
             value={draft.description}
             onChange={(md) => set("description", md)}
+            placeholder="Cuenta la historia de esta foto…"
           />
         </label>
 

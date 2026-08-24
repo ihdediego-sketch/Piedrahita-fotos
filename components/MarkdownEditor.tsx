@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
+import Placeholder from "@tiptap/extension-placeholder";
 import { Markdown, type MarkdownStorage } from "tiptap-markdown";
 import {
   Bold,
@@ -23,16 +24,31 @@ declare module "@tiptap/core" {
 }
 
 /**
- * Editor visual de la descripción: da formato con botones (negrita, listas,
- * enlaces...) sin que quien escribe tenga que conocer markdown. Por debajo se
- * guarda como markdown de texto plano, en la misma columna `description`.
+ * Evita que tocar un botón de la barra le quite el foco (y la selección) al
+ * editor antes de que se ejecute el comando. En iPadOS/iOS Safari el toque
+ * dispara mousedown -> blur del contentEditable -> click, y para cuando
+ * llega el click ya se perdió el texto seleccionado, así que "negrita" no
+ * se aplicaba a nada. Con preventDefault en mousedown el editor no pierde
+ * el foco y el comando actúa sobre la selección real.
  */
-export default function DescriptionEditor({
+const keepEditorFocused = (e: React.MouseEvent) => e.preventDefault();
+
+/**
+ * Editor visual de markdown: da formato con botones (negrita, listas,
+ * enlaces...) sin que quien escribe tenga que conocer markdown. Por debajo
+ * serializa a texto markdown plano vía `onChange`, listo para guardar en
+ * cualquier columna de texto y renderizar luego con `MarkdownText`.
+ */
+export default function MarkdownEditor({
   value,
   onChange,
+  placeholder,
+  className,
 }: {
   value: string;
   onChange: (markdown: string) => void;
+  placeholder?: string;
+  className?: string;
 }) {
   const editor = useEditor({
     immediatelyRender: false,
@@ -40,19 +56,29 @@ export default function DescriptionEditor({
       StarterKit.configure({ heading: false }),
       Link.configure({ openOnClick: false, autolink: true }),
       Markdown.configure({ html: false }),
+      Placeholder.configure({ placeholder: placeholder ?? "" }),
     ],
     content: value,
     onUpdate: ({ editor }) => {
       onChange(editor.storage.markdown.getMarkdown());
     },
     editorProps: {
-      attributes: { class: "description-editor-area" },
+      attributes: {
+        class: "markdown-editor-area",
+        // Desactiva la corrección automática de iOS: con Tiptap reescribiendo
+        // el DOM en cada pulsación, esas ayudas de Safari acaban duplicando o
+        // comiéndose letras al escribir en el iPad.
+        autocorrect: "off",
+        autocapitalize: "sentences",
+        spellcheck: "true",
+      },
     },
   });
 
-  // El valor externo solo se vuelve a cargar cuando cambia de foto (id
-  // distinto o editor recién montado): en cada tecleo ya lo lleva el propio
-  // editor, y reescribir el contenido a cada letra le rompería el cursor.
+  // El valor externo solo se vuelve a cargar cuando el editor se acaba de
+  // montar (p. ej. al cambiar de foto, si quien lo usa remonta con `key`):
+  // en cada tecleo ya lo lleva el propio editor, y reescribir el contenido
+  // a cada letra le rompería el cursor (y en iPad, además, cierra el teclado).
   useEffect(() => {
     if (!editor) return;
     const current = editor.storage.markdown.getMarkdown();
@@ -126,14 +152,15 @@ export default function DescriptionEditor({
   ];
 
   return (
-    <div className="description-editor">
-      <div className="description-editor-toolbar" role="toolbar" aria-label="Formato">
+    <div className={`markdown-editor${className ? ` ${className}` : ""}`}>
+      <div className="markdown-editor-toolbar" role="toolbar" aria-label="Formato">
         {buttons.map((b) => (
           <Button
             key={b.label}
             type="button"
             variant="ghost"
-            className={`description-editor-btn${b.active ? " active" : ""}`}
+            className={`markdown-editor-btn${b.active ? " active" : ""}`}
+            onMouseDown={keepEditorFocused}
             onClick={b.onClick}
             title={b.label}
             aria-label={b.label}

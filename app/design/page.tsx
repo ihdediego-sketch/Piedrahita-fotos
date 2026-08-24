@@ -17,7 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import DescriptionEditor from "@/components/DescriptionEditor";
+import MarkdownEditor from "@/components/MarkdownEditor";
 import MarkdownText from "@/components/MarkdownText";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "@/components/admin/admin.css";
@@ -380,7 +380,7 @@ export default function DesignSystemPage() {
         <section id="markdown" className="design-section">
           <h2>Editor de descripción y render de markdown</h2>
           <p className="design-lead">
-            <span className="design-code">DescriptionEditor</span> es un WYSIWYG (Tiptap)
+            <span className="design-code">MarkdownEditor</span> es un WYSIWYG (Tiptap)
             que serializa a markdown; <span className="design-code">MarkdownText</span>{" "}
             lo vuelve a pintar en el modal con <span className="design-code">react-markdown</span>{" "}
             (sin HTML crudo, así que no hace falta sanitizar aparte).
@@ -388,7 +388,7 @@ export default function DesignSystemPage() {
           <div className="design-block">
             <h3>Editor (panel)</h3>
             <div style={{ maxWidth: 480 }}>
-              <DescriptionEditor value={mdValue} onChange={setMdValue} />
+              <MarkdownEditor value={mdValue} onChange={setMdValue} placeholder="Escribe algo…" />
             </div>
           </div>
           <div className="design-block">
