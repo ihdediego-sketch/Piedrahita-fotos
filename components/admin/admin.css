@@ -809,6 +809,45 @@
   filter: grayscale(1);
 }
 
+/* El mapa de esquinas no se desatura: hay que ver la imagen histórica en
+   color real mientras se encaja. */
+.corner-picker-map.maplibregl-map .maplibregl-canvas {
+  filter: none;
+}
+
+/* Cada esquina numerada, en su color propio, para que arrastrar no invierta
+   el orden sin darse cuenta. */
+.corner-handle {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--corner-color, var(--brown));
+  border: 2px solid var(--paper-solid);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 1px 4px rgba(0, 0, 0, 0.35);
+  color: var(--paper-solid);
+  font-size: 0.65rem;
+  font-weight: 600;
+  cursor: grab;
+}
+
+.corner-handle:active {
+  cursor: grabbing;
+}
+
+.corner-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-top: 0.4rem;
+}
+
+.corner-input-row label {
+  font-size: 0.62rem;
+}
+
 /* Las acciones de la cabecera de una foto comparten caja: lo que cambia entre
    ellas es el color, no el tamaño. Va después de .save-btn a propósito, para
    imponer la medida común cuando se combinan. */

@@ -1,8 +1,13 @@
 import { createClient } from "@/lib/supabase/client";
 import { ACCEPTED_IMAGE_TYPES, AVATAR_BUCKET, PHOTO_BUCKET } from "@/lib/photos";
+import {
+  ACCEPTED_HISTORICAL_MAP_TYPES,
+  HISTORICAL_MAP_BUCKET,
+} from "@/lib/historical-maps";
 
 const MAX_PHOTO_BYTES = 20 * 1024 * 1024;
 const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
+const MAX_HISTORICAL_MAP_BYTES = 40 * 1024 * 1024;
 
 export const ACCEPTED_AVATAR_TYPES = [
   "image/jpeg",
@@ -58,3 +63,11 @@ export const uploadPhotoImage = (file: File) =>
 
 export const uploadAvatarImage = (file: File) =>
   uploadImage(file, AVATAR_BUCKET, ACCEPTED_AVATAR_TYPES, MAX_AVATAR_BYTES);
+
+export const uploadHistoricalMapImage = (file: File) =>
+  uploadImage(
+    file,
+    HISTORICAL_MAP_BUCKET,
+    ACCEPTED_HISTORICAL_MAP_TYPES,
+    MAX_HISTORICAL_MAP_BYTES
+  );

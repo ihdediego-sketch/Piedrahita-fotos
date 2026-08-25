@@ -16,9 +16,11 @@ import {
   Eye,
   EyeOff,
   ImageIcon,
+  Map,
   MessageSquare,
   Plus,
   Save,
+  Trash2,
   Type,
   Users,
   X,
@@ -35,6 +37,11 @@ import PhotoFields, {
   toDraft,
   type Draft,
 } from "@/components/PhotoEditor";
+import HistoricalMapFields, {
+  emptyDraft as emptyHmDraft,
+  toDraft as toHmDraft,
+  type Draft as HmDraft,
+} from "@/components/HistoricalMapEditor";
 import {
   savePhoto,
   saveSiteContent,
@@ -42,6 +49,11 @@ import {
   setRole,
 } from "@/app/actions/photos";
 import { setCommentStatus } from "@/app/actions/social";
+import {
+  deleteHistoricalMap,
+  saveHistoricalMap,
+  setHistoricalMapPublished,
+} from "@/app/actions/historical-maps";
 import { avatarUrl, defaultDateLabel } from "@/lib/photos";
 import { useScrollBorder } from "@/lib/useScrollBorder";
 import {
@@ -51,6 +63,7 @@ import {
   STATUS_LABELS_PLURAL,
   isAdmin,
   type Comment,
+  type HistoricalMap,
   type Photo,
   type PhotoStatus,
   type Profile,
@@ -60,7 +73,7 @@ import {
 } from "@/lib/types";
 import "./admin.css";
 
-type Tab = "fotos" | "comentarios" | "textos" | "personas";
+type Tab = "fotos" | "mapas" | "comentarios" | "textos" | "personas";
 
 /** «todos»: el filtro de personas apagado, sin rol elegido. */
 type PeopleFilter = Role | "todos";
@@ -71,12 +84,14 @@ const PHOTO_FILTERS: PhotoStatus[] = ["published", "pending", "rejected"];
 export default function AdminPanel({
   viewer,
   photos,
+  historicalMaps,
   comments,
   site,
   profiles,
 }: {
   viewer: Viewer;
   photos: Photo[];
+  historicalMaps: HistoricalMap[];
   comments: Comment[];
   site: SiteContent;
   profiles: Profile[];
@@ -105,6 +120,8 @@ export default function AdminPanel({
   // Copia del borrador tal como se abrió: lo que permite saber si hay cambios
   // que guardar y, por tanto, si el botón de guardar tiene algo que hacer.
   const [pristine, setPristine] = useState<Draft | null>(null);
+  const [hmDraft, setHmDraft] = useState<HmDraft | null>(null);
+  const [hmPristine, setHmPristine] = useState<HmDraft | null>(null);
   const [siteDraft, setSiteDraft] = useState(site);
   const [error, setError] = useState<string | null>(null);
   const [busy, startTransition] = useTransition();
@@ -132,6 +149,12 @@ export default function AdminPanel({
     },
     ...(admin
       ? ([
+          {
+            id: "mapas",
+            label: "Mapas históricos",
+            icon: Map,
+            count: historicalMaps.length,
+          },
           {
             id: "personas",
             label: "Usuarios",
@@ -200,6 +223,20 @@ export default function AdminPanel({
   const draftDirty =
     !!draft && JSON.stringify(draft) !== JSON.stringify(pristine);
 
+  /** Mismo patrón maestro-detalle que las fotos, para un mapa histórico. */
+  const openHmDraft = (next: HmDraft) => {
+    setHmDraft(next);
+    setHmPristine(next);
+  };
+
+  const closeHmDraft = () => {
+    setHmDraft(null);
+    setHmPristine(null);
+  };
+
+  const hmDraftDirty =
+    !!hmDraft && JSON.stringify(hmDraft) !== JSON.stringify(hmPristine);
+
   const siteDirty = (
     Object.keys(site) as (keyof SiteContent)[]
   ).some((k) => siteDraft[k] !== site[k]);
@@ -209,11 +246,11 @@ export default function AdminPanel({
   useEffect(() => setSiteDraft(site), [site]);
 
   useEffect(() => {
-    if (!draftDirty && !siteDirty) return;
+    if (!draftDirty && !hmDraftDirty && !siteDirty) return;
     const warn = (e: BeforeUnloadEvent) => e.preventDefault();
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
-  }, [draftDirty, siteDirty]);
+  }, [draftDirty, hmDraftDirty, siteDirty]);
 
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>) => {
     setError(null);
@@ -229,6 +266,25 @@ export default function AdminPanel({
     run(async () => {
       const res = await savePhoto(draft);
       if (res.ok) closeDraft();
+      return res;
+    });
+  };
+
+  const saveHmDraft = () => {
+    if (!hmDraft) return;
+    run(async () => {
+      const res = await saveHistoricalMap(hmDraft);
+      if (res.ok) closeHmDraft();
+      return res;
+    });
+  };
+
+  const deleteHm = (m: HistoricalMap) => {
+    if (!confirm(`¿Borrar «${m.title}» y su imagen? No se puede deshacer.`))
+      return;
+    run(async () => {
+      const res = await deleteHistoricalMap(m.id);
+      if (res.ok && hmDraft?.id === m.id) closeHmDraft();
       return res;
     });
   };
@@ -310,6 +366,43 @@ export default function AdminPanel({
         </span>
       </Button>
       {rowActions(p)}
+    </li>
+  );
+
+  const historicalMapRow = (m: HistoricalMap) => (
+    <li key={m.id}>
+      <Button
+        variant="ghost"
+        className={`photo-row${hmDraft?.id === m.id ? " selected" : ""}`}
+        onClick={() => openHmDraft(toHmDraft(m))}
+      >
+        <span className="thumb">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {m.image && <img src={m.image} alt="" />}
+        </span>
+        <span className="photo-row-text">
+          <span className="photo-row-title">{m.title || "(sin título)"}</span>
+          <span className="photo-row-meta">
+            <span
+              className={`status-dot ${m.published ? "published" : "pending"}`}
+              aria-hidden
+            />
+            {m.dateLabel || (m.published ? "Publicado" : "Sin publicar")}
+          </span>
+        </span>
+      </Button>
+      <span className="row-actions">
+        <Button
+          variant="ghost"
+          className="reject-btn"
+          title="Borrar"
+          aria-label="Borrar"
+          disabled={busy}
+          onClick={() => deleteHm(m)}
+        >
+          <Trash2 aria-hidden size={14} strokeWidth={2} />
+        </Button>
+      </span>
     </li>
   );
 
@@ -534,6 +627,92 @@ export default function AdminPanel({
             ) : (
               <p className="empty-detail">
                 Selecciona una fotografía de la lista para editarla.
+              </p>
+            )}
+          </section>
+        </div>
+      )}
+
+      {tab === "mapas" && admin && (
+        <div className="photos-layout">
+          <aside className="photos-list-pane">
+            <Button
+              variant="ghost"
+              className="add-btn"
+              onClick={() => openHmDraft(emptyHmDraft())}
+            >
+              <Plus aria-hidden size={13} strokeWidth={2} /> Añadir mapa histórico
+            </Button>
+
+            {historicalMaps.length === 0 && (
+              <p className="hint pane-note">
+                Todavía no hay mapas históricos. Añade uno para empezar.
+              </p>
+            )}
+
+            <ul className="photo-list" onScroll={onScroll}>
+              {historicalMaps.map(historicalMapRow)}
+            </ul>
+          </aside>
+
+          <section className="photo-detail-pane">
+            {hmDraft ? (
+              <div className="photo-form">
+                <div className="photo-form-head">
+                  <h2>{hmDraft.title || "Nuevo mapa histórico"}</h2>
+                  <div className="admin-actions">
+                    {hmDraft.id && (
+                      <label
+                        className={`publish-switch${hmDraft.published ? " on" : ""}`}
+                        title={
+                          hmDraft.published
+                            ? "Quitarlo del mapa sin borrarlo"
+                            : "Mostrarlo en el mapa"
+                        }
+                      >
+                        {hmDraft.published ? (
+                          <Eye aria-hidden size={15} strokeWidth={1.8} />
+                        ) : (
+                          <EyeOff aria-hidden size={15} strokeWidth={1.8} />
+                        )}
+                        {hmDraft.published ? "Publicado" : "Sin publicar"}
+                        <Switch
+                          className="data-checked:bg-success"
+                          checked={hmDraft.published}
+                          disabled={busy}
+                          onCheckedChange={(checked) =>
+                            run(() =>
+                              setHistoricalMapPublished(hmDraft.id!, checked)
+                            )
+                          }
+                        />
+                      </label>
+                    )}
+                    {hmDraftDirty && (
+                      <Button
+                        variant="ghost"
+                        className="form-action save-btn"
+                        onClick={saveHmDraft}
+                        disabled={busy}
+                      >
+                        <Save aria-hidden size={15} strokeWidth={1.8} />
+                        {busy ? "Guardando…" : "Guardar"}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="photo-form-body" onScroll={onScroll}>
+                  <HistoricalMapFields
+                    key={hmDraft.id ?? "nuevo"}
+                    draft={hmDraft}
+                    onChange={setHmDraft}
+                  />
+                </div>
+              </div>
+            ) : (
+              <p className="empty-detail">
+                Selecciona un mapa histórico de la lista para editarlo.
               </p>
             )}
           </section>

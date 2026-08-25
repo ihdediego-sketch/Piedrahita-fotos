@@ -258,6 +258,131 @@ div.map-root,
   stroke-linecap: round;
 }
 
+/* ---------- Mapas históricos ---------- */
+
+/* Mismo lenguaje que .map-controls (columna vertical, esquina fija), pero en
+   la esquina opuesta para no competir con el zoom/centrar. */
+.historical-maps-control {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 1.5rem;
+  z-index: 20;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.historical-maps-toggle[aria-expanded="true"] {
+  background: color-mix(in srgb, var(--brown) 80%, black);
+  border-color: color-mix(in srgb, var(--brown) 60%, black);
+}
+
+.historical-maps-panel {
+  width: 15.5rem;
+  max-width: calc(100vw - 3rem);
+  padding: 0.9rem 1rem 0.7rem;
+  background: var(--paper-solid);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 18px rgba(17, 17, 17, 0.14);
+}
+
+.historical-maps-panel h2 {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 0.6rem;
+}
+
+.historical-maps-panel ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.historical-map-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.historical-map-label {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+}
+
+.historical-map-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.historical-map-title {
+  font-size: 0.82rem;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.historical-map-date {
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+
+.historical-map-row input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 2px;
+  background: var(--line-strong);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.historical-map-row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--brown);
+  border: 2px solid var(--paper-solid);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--brown) 70%, black);
+  cursor: pointer;
+}
+
+.historical-map-row input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--brown);
+  border: 2px solid var(--paper-solid);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--brown) 70%, black);
+  cursor: pointer;
+}
+
+.historical-maps-limit {
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.68rem;
+}
+
+@media (max-width: 640px) {
+  .historical-maps-control {
+    left: 1rem;
+    bottom: 1rem;
+  }
+}
+
 /* ---------- Marcadores ---------- */
 
 .photo-marker {

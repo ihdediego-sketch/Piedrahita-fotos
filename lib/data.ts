@@ -1,8 +1,10 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { COMMENT_SELECT, avatarUrl, toComment, toPhoto } from "@/lib/photos";
+import { toHistoricalMap } from "@/lib/historical-maps";
 import type {
   Comment,
+  HistoricalMap,
   Photo,
   PhotoStatus,
   Profile,
@@ -174,6 +176,31 @@ export async function getMyLikedPhotos(userId: string): Promise<Photo[]> {
     .map(toPhoto);
 }
 
+
+/** Los mapas históricos publicados, para superponerlos en el mapa público. */
+export async function getPublishedHistoricalMaps(): Promise<HistoricalMap[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("historical_maps")
+    .select("*")
+    .eq("published", true)
+    .order("sort_order", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []).map(toHistoricalMap);
+}
+
+/** Todos los mapas históricos que puede ver el panel: staff los ve todos. */
+export async function getManagedHistoricalMaps(): Promise<HistoricalMap[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("historical_maps")
+    .select("*")
+    .order("sort_order", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []).map(toHistoricalMap);
+}
 
 /** Listado de personas para el panel. Solo tiene sentido para un admin. */
 export async function getProfiles(): Promise<Profile[]> {

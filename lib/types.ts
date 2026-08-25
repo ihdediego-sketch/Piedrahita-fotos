@@ -86,6 +86,38 @@ export type Comment = {
   createdAt: string;
 };
 
+/** Fila tal cual vive en la tabla `historical_maps`. */
+export type HistoricalMapRow = {
+  id: string;
+  title: string;
+  date_label: string;
+  /** Ruta dentro del bucket `historical-maps`, no una URL. */
+  image_path: string;
+  /** [top-left, top-right, bottom-right, bottom-left], cada uno [lng, lat]. */
+  corners: unknown;
+  default_opacity: number;
+  published: boolean;
+  sort_order: number;
+  author_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+/** Lo que consumen el mapa y el panel: la fila con la URL ya resuelta y `corners` tipado. */
+export type HistoricalMap = {
+  id: string;
+  title: string;
+  dateLabel: string;
+  image: string;
+  imagePath: string;
+  corners: [number, number][];
+  defaultOpacity: number;
+  published: boolean;
+  sortOrder: number;
+  authorId: string | null;
+  createdAt: string;
+};
+
 export type SiteContent = {
   title: string;
   subtitle: string;

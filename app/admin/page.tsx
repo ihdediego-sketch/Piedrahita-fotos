@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import AdminPanel from "@/components/admin/AdminPanel";
 import {
   getManagedComments,
+  getManagedHistoricalMaps,
   getManagedPhotos,
   getProfiles,
   getSiteContent,
@@ -18,8 +19,9 @@ export default async function AdminPage() {
   // Un usuario registrado sin permisos tiene su propia pantalla, no un 404
   if (!isStaff(viewer)) redirect("/subir");
 
-  const [photos, comments, site, profiles] = await Promise.all([
+  const [photos, historicalMaps, comments, site, profiles] = await Promise.all([
     getManagedPhotos(),
+    getManagedHistoricalMaps(),
     getManagedComments(),
     getSiteContent(),
     isAdmin(viewer) ? getProfiles() : Promise.resolve([]),
@@ -29,6 +31,7 @@ export default async function AdminPage() {
     <AdminPanel
       viewer={viewer}
       photos={photos}
+      historicalMaps={historicalMaps}
       comments={comments}
       site={site}
       profiles={profiles}

@@ -2,15 +2,21 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
-import { Plus, Minus, Maximize } from "lucide-react";
+import { Layers, Plus, Minus, Maximize } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { type Photo } from "@/lib/photos";
-import type { SiteContent, Viewer } from "@/lib/types";
+import type { HistoricalMap, SiteContent, Viewer } from "@/lib/types";
+import { toCornerTuple } from "@/lib/historical-maps";
 import { plaza, edificios } from "@/lib/lugares";
 import Timeline from "./Timeline";
 import PhotoModal from "./PhotoModal";
 import UserMenu from "./UserMenu";
 import { TIMELINE_MIN, TIMELINE_MAX } from "@/lib/photos";
+
+/** Tope de mapas históricos activos a la vez, para no encender de golpe
+ *  varias capas raster pesadas sin que el visitante se dé cuenta. */
+const MAX_VISIBLE_HISTORICAL_MAPS = 3;
 
 const PIEDRAHITA: [number, number] = [-5.326398, 40.463383];
 const DEFAULT_ZOOM = 15.2;
@@ -197,6 +203,7 @@ function legsElement(n: number, r: number) {
 
 type MapViewProps = {
   photos: Photo[];
+  historicalMaps: HistoricalMap[];
   site: SiteContent;
   viewer: Viewer;
   /** Fotos a las que el visitante ya dio me gusta, para pintar el corazón lleno. */
@@ -205,6 +212,7 @@ type MapViewProps = {
 
 export default function MapView({
   photos,
+  historicalMaps,
   site,
   viewer,
   likedIds,
@@ -213,6 +221,12 @@ export default function MapView({
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markersRef = useRef<Map<string, maplibregl.Marker>>(new Map());
   const spiderRef = useRef<Spider | null>(null);
+
+  const [visibleHmIds, setVisibleHmIds] = useState<Set<string>>(new Set());
+  const [hmOpacities, setHmOpacities] = useState<Record<string, number>>(
+    () => Object.fromEntries(historicalMaps.map((m) => [m.id, m.defaultOpacity]))
+  );
+  const [hmPanelOpen, setHmPanelOpen] = useState(false);
 
   const [range, setRange] = useState<[number, number]>([
     TIMELINE_MIN,
@@ -408,6 +422,65 @@ export default function MapView({
 
   renderRef.current = render;
 
+  // Añade/quita las capas de mapas históricos activos y ajusta su opacidad.
+  // Se insertan justo antes de "zonas-verdes": así actúan como reemplazo del
+  // fondo de calles, mientras el repintado de plaza/edificios/verde (que
+  // ayuda a orientarse con el pueblo actual) se sigue viendo encima.
+  const syncHistoricalLayers = useCallback(() => {
+    const map = mapRef.current;
+    if (!map || !map.isStyleLoaded()) return;
+
+    for (const m of historicalMaps) {
+      const sourceId = `hm:${m.id}`;
+      const layerId = `${sourceId}:layer`;
+      const opacity = hmOpacities[m.id] ?? m.defaultOpacity;
+
+      if (!visibleHmIds.has(m.id)) {
+        if (map.getLayer(layerId)) map.removeLayer(layerId);
+        if (map.getSource(sourceId)) map.removeSource(sourceId);
+        continue;
+      }
+
+      if (!map.getSource(sourceId)) {
+        map.addSource(sourceId, {
+          type: "image",
+          url: m.image,
+          coordinates: toCornerTuple(m.corners),
+        });
+        map.addLayer(
+          {
+            id: layerId,
+            type: "raster",
+            source: sourceId,
+            paint: { "raster-opacity": opacity },
+          },
+          "zonas-verdes"
+        );
+      } else if (map.getLayer(layerId)) {
+        map.setPaintProperty(layerId, "raster-opacity", opacity);
+      }
+    }
+  }, [historicalMaps, visibleHmIds, hmOpacities]);
+
+  const syncHistoricalLayersRef = useRef(syncHistoricalLayers);
+  syncHistoricalLayersRef.current = syncHistoricalLayers;
+
+  useEffect(() => {
+    syncHistoricalLayers();
+  }, [syncHistoricalLayers]);
+
+  const toggleHistoricalMap = (id: string) => {
+    setVisibleHmIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        if (next.size >= MAX_VISIBLE_HISTORICAL_MAPS) return prev;
+        next.add(id);
+      }
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -431,7 +504,10 @@ export default function MapView({
       spiderRef.current = null;
       renderRef.current();
     });
-    map.once("load", onMove);
+    map.once("load", () => {
+      onMove();
+      syncHistoricalLayersRef.current();
+    });
 
     return () => {
       map.remove();
@@ -495,6 +571,69 @@ export default function MapView({
           <Maximize aria-hidden size={17} strokeWidth={1.6} />
         </Button>
       </div>
+
+      {historicalMaps.length > 0 && (
+        <div className={`historical-maps-control${hmPanelOpen ? " open" : ""}`}>
+          <Button
+            type="button"
+            variant="ghost"
+            className="map-control historical-maps-toggle"
+            aria-label="Mapas históricos"
+            aria-expanded={hmPanelOpen}
+            onClick={() => setHmPanelOpen((v) => !v)}
+          >
+            <Layers aria-hidden size={17} strokeWidth={1.8} />
+          </Button>
+
+          {hmPanelOpen && (
+            <div className="historical-maps-panel">
+              <h2>Mapas históricos</h2>
+              <ul>
+                {historicalMaps.map((m) => {
+                  const active = visibleHmIds.has(m.id);
+                  return (
+                    <li key={m.id} className="historical-map-row">
+                      <label className="historical-map-label">
+                        <Switch
+                          checked={active}
+                          onCheckedChange={() => toggleHistoricalMap(m.id)}
+                        />
+                        <span className="historical-map-text">
+                          <span className="historical-map-title">{m.title}</span>
+                          {m.dateLabel && (
+                            <span className="historical-map-date">{m.dateLabel}</span>
+                          )}
+                        </span>
+                      </label>
+                      {active && (
+                        <input
+                          type="range"
+                          min={0}
+                          max={1}
+                          step={0.01}
+                          value={hmOpacities[m.id] ?? m.defaultOpacity}
+                          onChange={(e) =>
+                            setHmOpacities((prev) => ({
+                              ...prev,
+                              [m.id]: Number(e.target.value),
+                            }))
+                          }
+                          aria-label={`Opacidad de ${m.title}`}
+                        />
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+              {visibleHmIds.size >= MAX_VISIBLE_HISTORICAL_MAPS && (
+                <p className="hint historical-maps-limit">
+                  Solo puedes activar {MAX_VISIBLE_HISTORICAL_MAPS} a la vez.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       <header className="site-header">
         <h1>{site.title}</h1>
