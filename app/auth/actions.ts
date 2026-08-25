@@ -26,7 +26,7 @@ export async function sendMagicLink(
 
   // El origen real de la petición: así funciona igual en local y desplegado
   const origin =
-    process.env.NEXT_PUBLIC_SITE_URL ??
+    process.env.SITE_URL ??
     (await headers()).get("origin") ??
     "http://localhost:3000";
 
