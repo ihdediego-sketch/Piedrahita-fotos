@@ -449,11 +449,28 @@ export default function AdminPanel({
             </Button>
           ))}
         </nav>
+
+        <div className="admin-sidebar-foot">
+          <UserMenu viewer={viewer} showSubmit={false} />
+        </div>
       </aside>
 
       <div className="admin-main">
         <header className={`admin-topbar${scrolled ? " scrolled" : ""}`}>
-          <UserMenu viewer={viewer} showSubmit={false} />
+          <h2 className="admin-page-title">
+            {tabs.find((t) => t.id === tab)?.label}
+          </h2>
+          {tab === "textos" && siteDirty && (
+            <Button
+              variant="ghost"
+              className="form-action save-btn"
+              disabled={busy}
+              onClick={() => run(() => saveSiteContent(siteDraft))}
+            >
+              <Save aria-hidden size={15} strokeWidth={1.8} />
+              {busy ? "Guardando…" : "Guardar cambios"}
+            </Button>
+          )}
         </header>
 
         {error && <p className="admin-error">{error}</p>}
@@ -657,8 +674,6 @@ export default function AdminPanel({
 
       {tab === "comentarios" && (
         <div className="pane pane-centered" onScroll={onScroll}>
-          <h2>Comentarios</h2>
-
           <SegmentedFilter
             ariaLabel="Filtrar por estado"
             value={commentFilter}
@@ -686,21 +701,6 @@ export default function AdminPanel({
 
       {tab === "textos" && admin && (
         <div className="pane pane-centered" onScroll={onScroll}>
-          <div className="photo-form-head">
-            <h2>Textos de la web</h2>
-            {siteDirty && (
-              <Button
-                variant="ghost"
-                className="form-action save-btn"
-                disabled={busy}
-                onClick={() => run(() => saveSiteContent(siteDraft))}
-              >
-                <Save aria-hidden size={15} strokeWidth={1.8} />
-                {busy ? "Guardando…" : "Guardar cambios"}
-              </Button>
-            )}
-          </div>
-
           {SITE_TEXT_GROUPS.map((group) => (
             <section key={group.title} className="text-group">
               <h3>{group.title}</h3>
@@ -742,8 +742,6 @@ export default function AdminPanel({
 
       {tab === "personas" && admin && (
         <div className="pane pane-centered" onScroll={onScroll}>
-          <h2>Usuarios</h2>
-
           <SegmentedFilter
             ariaLabel="Filtrar por tipo"
             value={peopleFilter}

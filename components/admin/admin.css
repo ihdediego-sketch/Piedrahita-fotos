@@ -158,7 +158,6 @@
 }
 
 .admin-side-nav {
-  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
@@ -204,6 +203,16 @@
   opacity: 1;
 }
 
+/* El avatar de sesión va al fondo de la barra lateral, separado del resto
+   de la navegación: margin-top: auto lo empuja abajo del todo aunque haya
+   pocas pestañas y sobre espacio. */
+.admin-sidebar-foot {
+  flex-shrink: 0;
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
 .admin-main {
   flex: 1;
   min-width: 0;
@@ -216,7 +225,9 @@
 .admin-topbar {
   flex-shrink: 0;
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
   padding-bottom: 1.4rem;
   border-bottom: 1px solid transparent;
   transition: border-color 0.15s ease;
@@ -224,6 +235,16 @@
 
 .admin-topbar.scrolled {
   border-bottom-color: var(--ink);
+}
+
+/* Cada pestaña dice en qué pantalla está quien la mira, en vez de dejar que
+   se infiera solo de cuál botón de la barra lateral quedó marcado.
+   ".admin-topbar" por delante, no solo ".admin-page-title": es un <h2> y
+   sin ese empate de especificidad pierde el margin-bottom contra ".admin h2". */
+.admin-topbar .admin-page-title {
+  margin-bottom: 0;
+  font-size: 1.15rem;
+  font-weight: 500;
 }
 
 .admin-errors {
@@ -1881,4 +1902,23 @@
 .admin-header .user-dropdown,
 .admin-topbar .user-dropdown {
   z-index: 30;
+}
+
+/* El avatar vive al fondo de la barra lateral izquierda, no en una cabecera
+   arriba a la derecha: mismo desanclado de posición que arriba, pero el
+   desplegable abre hacia arriba y a la derecha (no hacia abajo, que se
+   saldría de la pantalla al estar ya pegado al borde inferior). */
+.admin-sidebar-foot .user-menu {
+  position: relative;
+  top: auto;
+  right: auto;
+}
+
+.admin-sidebar-foot .user-dropdown {
+  top: auto;
+  right: auto;
+  bottom: calc(100% + 0.5rem);
+  left: 0;
+  z-index: 30;
+  transform-origin: bottom left;
 }
