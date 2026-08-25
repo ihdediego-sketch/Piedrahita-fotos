@@ -243,7 +243,7 @@
    sin ese empate de especificidad pierde el margin-bottom contra ".admin h2". */
 .admin-topbar .admin-page-title {
   margin-bottom: 0;
-  font-size: 1.15rem;
+  font-size: 1.5rem;
   font-weight: 500;
 }
 
@@ -441,12 +441,14 @@
 }
 
 /* Fotografías se queda a ancho completo (lista + detalle en columnas); el
-   resto de pestañas son formularios y listas simples que se leen mejor
-   centradas, sin estirarse de punta a punta de la pantalla. */
+   resto de pestañas son formularios y listas simples que se leen mejor con
+   un tope de ancho, sin estirarse de punta a punta de la pantalla. Empieza
+   pegado al mismo borde izquierdo que Fotografías/Mapas (no centrado): así
+   el título y el contenido no saltan de sitio al cambiar de pestaña. */
 .pane-centered {
   max-width: 860px;
   width: 100%;
-  margin: 0 auto;
+  margin: 0;
 }
 
 .pane-centered section + section {
@@ -846,6 +848,14 @@
 
 .hm-picker-wrap .admin-map.corner-picker-map {
   height: 460px;
+}
+
+/* Misma especificidad que la regla anterior (3 clases): sin este empate
+   a favor de la pantalla completa, ".hm-picker-wrap .corner-picker-map"
+   gana por venir después en la hoja y el mapa se queda en 460px en vez de
+   ocupar toda la pantalla al ampliar. */
+.admin-map-wrap.fullscreen .admin-map.corner-picker-map {
+  height: 100%;
 }
 
 .hm-upload-row {
