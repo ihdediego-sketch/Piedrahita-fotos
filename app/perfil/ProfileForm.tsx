@@ -21,6 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import UserMenu from "@/components/UserMenu";
 import { saveProfile } from "@/app/actions/profile";
 import { setPhotoStatus } from "@/app/actions/photos";
 import { setCommentStatus, toggleLike } from "@/app/actions/social";
@@ -149,7 +150,7 @@ export default function ProfileForm({
   return (
     <main className="admin profile-page">
       <header className="admin-header">
-        <div>
+        <div className="admin-header-left">
           <Link href="/" className="back-link">
             <ArrowLeft aria-hidden size={14} strokeWidth={1.8} /> Volver al mapa
           </Link>
@@ -185,6 +186,7 @@ export default function ProfileForm({
               </Button>
             </>
           )}
+          <UserMenu viewer={viewer} dropdown={false} />
         </div>
       </header>
 

@@ -10,9 +10,13 @@ import { ROLE_LABELS, isStaff, type Viewer } from "@/lib/types";
 export default function UserMenu({
   viewer,
   showSubmit = true,
+  dropdown = true,
 }: {
   viewer: Viewer;
   showSubmit?: boolean;
+  /** En /perfil y /subir el avatar solo identifica la sesión: el menú con
+      Admin/Enviar fotos/Mi perfil/Salir vive únicamente en /admin. */
+  dropdown?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -39,6 +43,21 @@ export default function UserMenu({
           <span className="user-chip-guest-full">Entrar / Registrarse</span>
           <span className="user-chip-guest-short">Entrar</span>
         </Link>
+      </div>
+    );
+  }
+
+  if (!dropdown) {
+    return (
+      <div className="user-menu user-menu-static">
+        <span className="user-chip user-chip-avatar" aria-label={viewer.displayName || "Tu cuenta"}>
+          {viewer.avatar ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img className="user-avatar" src={viewer.avatar} alt="" />
+          ) : (
+            <User aria-hidden size={20} strokeWidth={1.7} />
+          )}
+        </span>
       </div>
     );
   }
@@ -92,21 +111,22 @@ export default function UserMenu({
             </span>
           </span>
 
-          {/* Primero lo que se usa a diario, y salir al final, separado. */}
+          {/* Admin primero (si toca), luego lo de uso diario, y salir al
+              final, separado. */}
           <div className="user-actions">
-            <Link href="/subir" role="menuitem" onClick={() => setOpen(false)}>
-              <ImagePlus aria-hidden size={17} strokeWidth={1.7} />
-              Enviar fotos
-            </Link>
             {isStaff(viewer) && (
               <Link href="/admin" role="menuitem" onClick={() => setOpen(false)}>
                 <Settings aria-hidden size={17} strokeWidth={1.7} />
                 Admin
               </Link>
             )}
+            <Link href="/subir" role="menuitem" onClick={() => setOpen(false)}>
+              <ImagePlus aria-hidden size={17} strokeWidth={1.7} />
+              Enviar fotos
+            </Link>
             <Link href="/perfil" role="menuitem" onClick={() => setOpen(false)}>
               <User aria-hidden size={17} strokeWidth={1.7} />
-              Tu perfil
+              Mi perfil
             </Link>
           </div>
 

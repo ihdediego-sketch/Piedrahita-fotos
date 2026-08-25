@@ -18,5 +18,7 @@ export default async function SubirPage() {
   ]);
   const mine = photos.filter((p) => p.authorId === viewer.id);
 
-  return <SubmitPhoto mine={mine} site={site} canPublish={isStaff(viewer)} />;
+  return (
+    <SubmitPhoto viewer={viewer} mine={mine} site={site} canPublish={isStaff(viewer)} />
+  );
 }

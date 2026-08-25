@@ -6,15 +6,18 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PhotoFields, { emptyDraft, toDraft, type Draft } from "@/components/PhotoEditor";
+import UserMenu from "@/components/UserMenu";
 import { savePhoto } from "@/app/actions/photos";
 import { useScrollBorder } from "@/lib/useScrollBorder";
-import type { Photo, SiteContent } from "@/lib/types";
+import type { Photo, SiteContent, Viewer } from "@/lib/types";
 
 export default function SubmitPhoto({
+  viewer,
   mine,
   site,
   canPublish,
 }: {
+  viewer: NonNullable<Viewer>;
   mine: Photo[];
   site: SiteContent;
   canPublish: boolean;
@@ -66,7 +69,7 @@ export default function SubmitPhoto({
   return (
     <main className="admin">
       <header className={`admin-header${scrolled ? " scrolled" : ""}`}>
-        <div>
+        <div className="admin-header-left">
           <Link href="/" className="back-link">
             <ArrowLeft aria-hidden size={14} strokeWidth={1.8} /> Volver al mapa
           </Link>
@@ -92,6 +95,7 @@ export default function SubmitPhoto({
           >
             {pending ? "Guardando…" : editing ? "Guardar cambios" : "Enviar"}
           </Button>
+          <UserMenu viewer={viewer} dropdown={false} />
         </div>
       </header>
 
