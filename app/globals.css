@@ -258,19 +258,14 @@ div.map-root,
   stroke-linecap: round;
 }
 
-/* ---------- Mapas históricos ---------- */
+/* ---------- Mapas históricos ----------
+   Selector de capas al estilo Google Maps: un botón cuadrado junto a la
+   línea de tiempo que despliega, hacia arriba, una fila de miniaturas — una
+   por mapa histórico — en vez de una lista de interruptores. */
 
-/* Mismo lenguaje que .map-controls (columna vertical, esquina fija), pero en
-   la esquina opuesta para no competir con el zoom/centrar. */
 .historical-maps-control {
-  position: fixed;
-  bottom: 1.5rem;
-  left: 1.5rem;
-  z-index: 20;
-  display: flex;
-  flex-direction: column-reverse;
-  align-items: flex-start;
-  gap: 0.6rem;
+  position: relative;
+  flex-shrink: 0;
 }
 
 .historical-maps-toggle[aria-expanded="true"] {
@@ -279,13 +274,24 @@ div.map-root,
 }
 
 .historical-maps-panel {
-  width: 15.5rem;
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 0.6rem);
+  width: max-content;
   max-width: calc(100vw - 3rem);
-  padding: 0.9rem 1rem 0.7rem;
+  padding: 0.8rem;
   background: var(--paper-solid);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  box-shadow: 0 4px 18px rgba(17, 17, 17, 0.14);
+  box-shadow: 0 4px 18px rgba(17, 17, 17, 0.16);
+}
+
+.historical-maps-panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-bottom: 0.6rem;
 }
 
 .historical-maps-panel h2 {
@@ -294,50 +300,83 @@ div.map-root,
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--ink-soft);
-  margin-bottom: 0.6rem;
 }
 
-.historical-maps-panel ul {
+.historical-maps-limit {
+  font-size: 0.62rem;
+  white-space: nowrap;
+}
+
+.historical-maps-row {
   list-style: none;
   display: flex;
-  flex-direction: column;
   gap: 0.7rem;
+  overflow-x: auto;
+  max-width: min(60vw, 40rem);
+  padding-bottom: 0.1rem;
 }
 
-.historical-map-row {
+.hm-card {
+  flex-shrink: 0;
+  width: 6.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
 }
 
-.historical-map-label {
+.hm-card-btn {
   display: flex;
-  align-items: center;
-  gap: 0.6rem;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0;
+  border: none;
+  background: none;
+  text-align: left;
   cursor: pointer;
 }
 
-.historical-map-text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
+.hm-thumb {
+  width: 6.5rem;
+  height: 4.6rem;
+  border-radius: var(--radius-sm);
+  border: 2px solid transparent;
+  outline: 1px solid var(--line);
+  outline-offset: -1px;
+  background-size: cover;
+  background-position: center;
+  transition: outline-color 0.15s ease, border-color 0.15s ease;
 }
 
-.historical-map-title {
-  font-size: 0.82rem;
+.hm-card-btn:hover .hm-thumb {
+  outline-color: var(--brown);
+}
+
+/* Marco marrón cuando la capa está activa, igual que el mapa base
+   seleccionado en el selector de Google Maps. */
+.hm-card.active .hm-thumb {
+  border-color: var(--brown);
+  outline-color: var(--brown);
+}
+
+.hm-card-title {
+  font-size: 0.7rem;
   color: var(--ink);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.historical-map-date {
-  font-size: 0.65rem;
-  letter-spacing: 0.06em;
+.hm-card.active .hm-card-title {
+  color: var(--brown);
+  font-weight: 600;
+}
+
+.hm-card-date {
+  font-size: 0.62rem;
   color: var(--ink-soft);
 }
 
-.historical-map-row input[type="range"] {
+.hm-opacity {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
@@ -347,11 +386,11 @@ div.map-root,
   cursor: pointer;
 }
 
-.historical-map-row input[type="range"]::-webkit-slider-thumb {
+.hm-opacity::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
   background: var(--brown);
   border: 2px solid var(--paper-solid);
@@ -359,27 +398,23 @@ div.map-root,
   cursor: pointer;
 }
 
-.historical-map-row input[type="range"]::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
+.hm-opacity::-moz-range-thumb {
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
   background: var(--brown);
   border: 2px solid var(--paper-solid);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--brown) 70%, black);
   cursor: pointer;
-}
-
-.historical-maps-limit {
-  margin-top: 0.6rem;
-  padding-top: 0.6rem;
-  border-top: 1px solid var(--line);
-  font-size: 0.68rem;
 }
 
 @media (max-width: 640px) {
-  .historical-maps-control {
-    left: 1rem;
-    bottom: 1rem;
+  .historical-maps-panel {
+    left: auto;
+    right: 0;
+  }
+  .historical-maps-row {
+    max-width: calc(100vw - 5rem);
   }
 }
 
@@ -490,12 +525,21 @@ div.map-root,
 
 /* ---------- Línea de tiempo ---------- */
 
-.timeline {
+/* Fila fija al pie: el selector de capas históricas vive pegado a la línea
+   de tiempo, como el selector de capas de Google Maps junto a sus controles
+   inferiores, en vez de flotar suelto en otra esquina. */
+.bottom-bar {
   position: fixed;
   left: 50%;
   bottom: 2rem;
   transform: translateX(-50%);
   z-index: 20;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.6rem;
+}
+
+.timeline {
   width: min(680px, calc(100vw - 3rem));
   background: var(--brown-soft);
   border: none;
@@ -986,8 +1030,13 @@ div.map-root,
     flex-direction: column;
     gap: 0.3rem;
   }
-  .timeline {
+  .bottom-bar {
     bottom: 1rem;
+    flex-direction: column-reverse;
+    align-items: center;
+    width: calc(100vw - 2rem);
+  }
+  .timeline {
     padding: 0.6rem 1.1rem 0.7rem;
   }
   .map-controls {

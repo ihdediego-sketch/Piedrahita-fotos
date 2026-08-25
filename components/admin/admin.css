@@ -129,98 +129,101 @@
   cursor: default;
 }
 
-.admin-tabs-root {
-  flex-shrink: 0;
-  display: flex !important;
+/* ---------- Panel con barra lateral (solo AdminPanel) ----------
+   .admin sigue siendo la base compartida con /subir y /perfil (columna,
+   100dvh, padding): aquí se sobreescribe a fila solo con el modificador,
+   para no descolocar esas otras pantallas que reutilizan la misma clase. */
+.admin.admin-with-sidebar {
+  flex-direction: row;
+  padding: 0;
+}
+
+.admin-sidebar {
+  flex: 0 0 15rem;
+  display: flex;
   flex-direction: column;
+  gap: 1.6rem;
+  padding: 1.8rem 1.2rem;
+  border-right: 1px solid var(--line);
+  overflow-y: auto;
 }
 
-/* Control segmentado: una sola pastilla de tinta que viaja entre pestañas,
-   posicionada desde JS porque cada etiqueta mide distinto. */
-.admin-tabs {
-  position: relative;
-  flex-shrink: 1;
-  display: flex !important;
-  align-self: center;
-  justify-self: center;
-  width: auto !important;
-  height: auto !important;
-  gap: 0.15rem;
-  margin: 0 !important;
-  padding: 0.25rem !important;
-  background: none !important;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.admin-tabs::-webkit-scrollbar {
-  display: none;
-}
-
-.admin-tabs-marker {
-  position: absolute;
-  top: 0.25rem;
-  left: 0;
-  bottom: 0.25rem;
-  border-radius: 999px;
-  background: var(--brown);
-  border: 1px solid color-mix(in srgb, var(--brown) 70%, black);
-  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
-    width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-  pointer-events: none;
-}
-
-.admin-tabs button {
-  position: relative;
-  z-index: 1;
+.admin-sidebar-head {
   flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  background: none;
-  border: none;
-  border-radius: 999px;
-  height: auto;
-  padding: 0.55rem 1.05rem;
-  font-size: 0.72rem;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  color: var(--ink);
-  transition: color 0.2s ease;
+  padding: 0 0.6rem;
 }
 
-.admin-tabs button svg {
+.admin-sidebar-head h1 {
+  font-size: 1.3rem;
+}
+
+.admin-side-nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.admin-side-nav button {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  justify-content: flex-start;
+  width: 100%;
+  height: auto;
+  padding: 0.6rem 0.7rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.76rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.admin-side-nav button svg {
+  flex-shrink: 0;
   opacity: 0.75;
   transition: opacity 0.2s ease;
 }
 
-.admin-tabs button:hover svg {
+.admin-side-nav button:hover {
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
+  color: var(--ink);
+}
+
+.admin-side-nav button:hover svg {
   opacity: 1;
 }
 
-.admin-tabs button.active,
-.admin-tabs button[data-active] {
-  background: none;
+.admin-side-nav button.active {
+  background: var(--brown);
   color: var(--paper);
 }
 
-.admin-tabs button.active svg {
+.admin-side-nav button.active svg {
   opacity: 1;
 }
 
-/* La cuenta acompaña a la etiqueta sin competir con ella. */
-.tab-count {
-  font-size: 0.68rem;
-  letter-spacing: 0.04em;
-  color: color-mix(in srgb, currentColor 55%, transparent);
+.admin-main {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 1.8rem 2.5rem 0;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .admin-tabs-marker {
-    transition: none;
-  }
+.admin-topbar {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+  padding-bottom: 1.4rem;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s ease;
+}
+
+.admin-topbar.scrolled {
+  border-bottom-color: var(--ink);
 }
 
 .admin-errors {
@@ -810,9 +813,80 @@
 }
 
 /* El mapa de esquinas no se desatura: hay que ver la imagen histórica en
-   color real mientras se encaja. */
+   color real mientras se encaja. Es el elemento principal del editor, así
+   que va mucho más alto que el picker de un solo punto de PhotoEditor. */
 .corner-picker-map.maplibregl-map .maplibregl-canvas {
   filter: none;
+}
+
+.hm-fields {
+  max-width: 760px;
+}
+
+.hm-picker-wrap .admin-map.corner-picker-map {
+  height: 460px;
+}
+
+.hm-upload-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.hm-thumb-box {
+  flex-shrink: 0;
+  width: 90px;
+  height: 68px;
+  border: 1px solid var(--line);
+  background: var(--fill-placeholder);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.hm-thumb-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hm-thumb-box .image-placeholder {
+  font-size: 0.6rem;
+  text-align: center;
+  padding: 0 0.4rem;
+}
+
+.hm-upload-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding-top: 0.2rem;
+}
+
+/* Las coordenadas son un detalle de precisión, no lo primero que se toca:
+   cerradas por defecto, con la misma tipografía de rótulo que el resto. */
+.corner-coords {
+  margin-top: 0.8rem;
+}
+
+.corner-coords summary {
+  cursor: pointer;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding: 0.3rem 0;
+}
+
+.corner-coords summary:hover {
+  color: var(--ink);
+}
+
+.corner-coords[open] summary {
+  margin-bottom: 0.4rem;
 }
 
 /* Cada esquina numerada, en su color propio, para que arrastrar no invierta
@@ -835,6 +909,74 @@
 
 .corner-handle:active {
   cursor: grabbing;
+}
+
+/* Flotante sobre el propio mapa, no en el formulario de arriba: hay que
+   poder bajar la opacidad justo mientras se arrastran las esquinas, para
+   ver las calles de debajo y encajar la imagen con precisión. */
+.corner-opacity-control {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: calc(100% - 16px);
+  padding: 0.5rem 0.7rem;
+  background: color-mix(in srgb, var(--paper-solid) 92%, transparent);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 2px 8px rgba(17, 17, 17, 0.15);
+}
+
+.corner-opacity-control span {
+  flex-shrink: 0;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.corner-opacity-control input[type="range"] {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 2px;
+  background: var(--line-strong);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.corner-opacity-control input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--brown);
+  border: 2px solid var(--paper-solid);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--brown) 70%, black);
+  cursor: pointer;
+}
+
+.corner-opacity-control input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--brown);
+  border: 2px solid var(--paper-solid);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--brown) 70%, black);
+  cursor: pointer;
+}
+
+/* Pantalla completa: la barra de transparencia baja para no chocar con la
+   X de cerrar, igual que ya hace la fila de controles de zoom. */
+.admin-map-wrap.fullscreen .corner-opacity-control {
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  width: min(420px, calc(100% - 48px));
 }
 
 .corner-inputs {
@@ -872,17 +1014,24 @@
 }
 
 /* Interruptor de publicación: verde cuando la foto está en el mapa, apagado
-   cuando no, y el texto dice en cuál de los dos estados se encuentra. */
-.publish-switch {
+   cuando no, y el texto dice en cuál de los dos estados se encuentra.
+   Selector reforzado con .admin por delante: como es un <label>, sin este
+   empate de especificidad pierde contra ".admin label" (que lo pondría en
+   columna) y el icono, el texto y el interruptor se apilan en vez de ir en
+   una sola fila. */
+.admin .publish-switch {
   flex-shrink: 0;
   display: inline-flex;
   flex-direction: row;
   align-items: center;
+  justify-content: flex-start;
   flex-wrap: nowrap;
   white-space: nowrap;
   gap: 0.6rem;
+  min-width: 11rem;
   height: auto;
-  padding: 0.5rem 1rem;
+  margin-bottom: 0;
+  padding: 0.5rem 1.1rem;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   font-size: 0.72rem;
@@ -911,11 +1060,35 @@
     display: flex;
     flex-wrap: wrap;
   }
-  .admin-tabs {
-    order: 3;
-    flex-basis: 100%;
-    margin: 0.8rem 0 0 !important;
-    max-width: 100%;
+  /* La barra lateral pasa a cabecera horizontal: el mapa de esquinas y las
+     listas maestro-detalle ya necesitan todo el ancho en pantallas chicas. */
+  .admin.admin-with-sidebar {
+    flex-direction: column;
+  }
+  .admin-sidebar {
+    flex: 0 0 auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.2rem;
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+    overflow-x: auto;
+  }
+  .admin-sidebar-head {
+    flex-shrink: 0;
+    padding: 0;
+  }
+  .admin-side-nav {
+    flex-direction: row;
+    flex-shrink: 0;
+  }
+  .admin-side-nav button {
+    width: auto;
+    white-space: nowrap;
+  }
+  .admin-main {
+    padding: 1.2rem 1.2rem 0;
   }
   .photos-layout {
     flex-direction: column;
@@ -1696,7 +1869,8 @@
 
 /* El menú de usuario es fijo sobre el mapa; dentro del panel vive en la
    cabecera, así que aquí fluye con el resto de acciones. */
-.admin-header .user-menu {
+.admin-header .user-menu,
+.admin-topbar .user-menu {
   position: relative;
   top: auto;
   right: auto;
@@ -1704,6 +1878,7 @@
 
 /* La cabecera va antes que el resto en el DOM: sin esto el desplegable queda
    por debajo de la lista de fotografías. */
-.admin-header .user-dropdown {
+.admin-header .user-dropdown,
+.admin-topbar .user-dropdown {
   z-index: 30;
 }

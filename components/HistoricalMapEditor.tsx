@@ -78,11 +78,13 @@ function CornerPicker({
   corners,
   opacity,
   onChange,
+  onOpacityChange,
 }: {
   imagePath: string;
   corners: [number, number][];
   opacity: number;
   onChange: (corners: [number, number][]) => void;
+  onOpacityChange: (opacity: number) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -224,6 +226,25 @@ function CornerPicker({
   return (
     <div className={`admin-map-wrap${full ? " fullscreen" : ""}`}>
       <div className="admin-map corner-picker-map" ref={ref} />
+
+      {/* Sobre el propio mapa, no arriba en el formulario: hace falta bajar
+          la opacidad mientras se arrastran las esquinas para ver las calles
+          de debajo y encajar la imagen, no solo después de colocarla. */}
+      {imagePath && (
+        <div className="corner-opacity-control">
+          <span>Transparencia</span>
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.01}
+            value={opacity}
+            onChange={(e) => onOpacityChange(Number(e.target.value))}
+            aria-label="Transparencia del mapa histórico mientras se encaja"
+          />
+        </div>
+      )}
+
       {full ? (
         <Button
           type="button"
@@ -294,8 +315,8 @@ export default function HistoricalMapFields({
     preview ?? (draft.imagePath ? historicalMapImageUrl(draft.imagePath) : "");
 
   return (
-    <div className="photo-form-cols">
-      <div className="photo-form-fields">
+    <div className="hm-fields">
+      <div className="field-row">
         <label>
           Título
           <Input
@@ -314,31 +335,65 @@ export default function HistoricalMapFields({
             onChange={(e) => set("dateLabel", e.target.value)}
           />
         </label>
+      </div>
 
-        <label>
-          Opacidad por defecto
-          <input
-            type="range"
-            min={0}
-            max={1}
-            step={0.01}
-            value={draft.defaultOpacity}
-            onChange={(e) => set("defaultOpacity", Number(e.target.value))}
-          />
-          <span className="hint">
-            {Math.round(draft.defaultOpacity * 100)}% — con la que arranca en
-            el mapa público antes de que el visitante lo ajuste.
-          </span>
-        </label>
+      <div className="hm-upload-row">
+        <div className="hm-thumb-box">
+          {shown ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={shown} alt={draft.title} />
+          ) : (
+            <span className="image-placeholder">Sin imagen</span>
+          )}
+        </div>
+        <div className="hm-upload-side">
+          <label className="upload-btn">
+            {uploading
+              ? "Subiendo…"
+              : draft.imagePath
+                ? "Cambiar imagen"
+                : "Subir imagen"}
+            <Input
+              type="file"
+              accept={ACCEPTED_HISTORICAL_MAP_EXT}
+              hidden
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) upload(f);
+                e.target.value = "";
+              }}
+            />
+          </label>
+          {uploadError && <p className="admin-error">{uploadError}</p>}
+        </div>
+      </div>
 
-        {!hasValidWinding(draft.corners) && (
-          <p className="admin-error">
-            Las esquinas parecen estar en un orden inválido: revisa que no se
-            crucen (superior izquierda → superior derecha → inferior derecha →
-            inferior izquierda).
-          </p>
-        )}
+      {!hasValidWinding(draft.corners) && (
+        <p className="admin-error">
+          Las esquinas parecen estar en un orden inválido: revisa que no se
+          crucen (superior izquierda → superior derecha → inferior derecha →
+          inferior izquierda).
+        </p>
+      )}
 
+      <div className="hm-picker-wrap">
+        <CornerPicker
+          imagePath={draft.imagePath}
+          corners={draft.corners}
+          opacity={draft.defaultOpacity}
+          onChange={(corners) => set("corners", corners)}
+          onOpacityChange={(opacity) => set("defaultOpacity", opacity)}
+        />
+        <span className="hint">
+          Arrastra cada esquina numerada hasta encajarla con el mapa actual.
+          Baja la transparencia para ver las calles de debajo mientras
+          encajas — la opacidad que dejes es también la que verá el
+          visitante por defecto en el mapa público.
+        </span>
+      </div>
+
+      <details className="corner-coords">
+        <summary>Coordenadas</summary>
         <div className="corner-inputs">
           {CORNER_LABELS.map((label, i) => (
             <div key={label} className="field-row corner-input-row">
@@ -363,46 +418,7 @@ export default function HistoricalMapFields({
             </div>
           ))}
         </div>
-      </div>
-
-      <div className="photo-form-side">
-        <div className="image-box">
-          {shown ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={shown} alt={draft.title} />
-          ) : (
-            <span className="image-placeholder">Sin imagen</span>
-          )}
-        </div>
-        <label className="upload-btn">
-          {uploading
-            ? "Subiendo…"
-            : draft.imagePath
-              ? "Cambiar imagen"
-              : "Subir imagen"}
-          <Input
-            type="file"
-            accept={ACCEPTED_HISTORICAL_MAP_EXT}
-            hidden
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) upload(f);
-              e.target.value = "";
-            }}
-          />
-        </label>
-        {uploadError && <p className="admin-error">{uploadError}</p>}
-
-        <CornerPicker
-          imagePath={draft.imagePath}
-          corners={draft.corners}
-          opacity={draft.defaultOpacity}
-          onChange={(corners) => set("corners", corners)}
-        />
-        <span className="hint">
-          Arrastra cada esquina numerada hasta encajarla con el mapa actual.
-        </span>
-      </div>
+      </details>
     </div>
   );
 }

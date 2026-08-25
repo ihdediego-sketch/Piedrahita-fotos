@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import { Layers, Plus, Minus, Maximize } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { type Photo } from "@/lib/photos";
 import type { HistoricalMap, SiteContent, Viewer } from "@/lib/types";
 import { toCornerTuple } from "@/lib/historical-maps";
@@ -572,69 +571,6 @@ export default function MapView({
         </Button>
       </div>
 
-      {historicalMaps.length > 0 && (
-        <div className={`historical-maps-control${hmPanelOpen ? " open" : ""}`}>
-          <Button
-            type="button"
-            variant="ghost"
-            className="map-control historical-maps-toggle"
-            aria-label="Mapas históricos"
-            aria-expanded={hmPanelOpen}
-            onClick={() => setHmPanelOpen((v) => !v)}
-          >
-            <Layers aria-hidden size={17} strokeWidth={1.8} />
-          </Button>
-
-          {hmPanelOpen && (
-            <div className="historical-maps-panel">
-              <h2>Mapas históricos</h2>
-              <ul>
-                {historicalMaps.map((m) => {
-                  const active = visibleHmIds.has(m.id);
-                  return (
-                    <li key={m.id} className="historical-map-row">
-                      <label className="historical-map-label">
-                        <Switch
-                          checked={active}
-                          onCheckedChange={() => toggleHistoricalMap(m.id)}
-                        />
-                        <span className="historical-map-text">
-                          <span className="historical-map-title">{m.title}</span>
-                          {m.dateLabel && (
-                            <span className="historical-map-date">{m.dateLabel}</span>
-                          )}
-                        </span>
-                      </label>
-                      {active && (
-                        <input
-                          type="range"
-                          min={0}
-                          max={1}
-                          step={0.01}
-                          value={hmOpacities[m.id] ?? m.defaultOpacity}
-                          onChange={(e) =>
-                            setHmOpacities((prev) => ({
-                              ...prev,
-                              [m.id]: Number(e.target.value),
-                            }))
-                          }
-                          aria-label={`Opacidad de ${m.title}`}
-                        />
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-              {visibleHmIds.size >= MAX_VISIBLE_HISTORICAL_MAPS && (
-                <p className="hint historical-maps-limit">
-                  Solo puedes activar {MAX_VISIBLE_HISTORICAL_MAPS} a la vez.
-                </p>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
       <header className="site-header">
         <h1>{site.title}</h1>
         <span className="subtitle">{site.subtitle}</span>
@@ -642,12 +578,82 @@ export default function MapView({
 
       <UserMenu viewer={viewer} />
 
-      <Timeline
-        from={range[0]}
-        to={range[1]}
-        count={count}
-        onChange={(from, to) => setRange([from, to])}
-      />
+      <div className="bottom-bar">
+        {historicalMaps.length > 0 && (
+          <div className={`historical-maps-control${hmPanelOpen ? " open" : ""}`}>
+            {hmPanelOpen && (
+              <div className="historical-maps-panel">
+                <div className="historical-maps-panel-head">
+                  <h2>Mapas históricos</h2>
+                  {visibleHmIds.size >= MAX_VISIBLE_HISTORICAL_MAPS && (
+                    <span className="hint historical-maps-limit">
+                      Máx. {MAX_VISIBLE_HISTORICAL_MAPS} a la vez
+                    </span>
+                  )}
+                </div>
+                <ul className="historical-maps-row">
+                  {historicalMaps.map((m) => {
+                    const active = visibleHmIds.has(m.id);
+                    return (
+                      <li key={m.id} className={`hm-card${active ? " active" : ""}`}>
+                        <button
+                          type="button"
+                          className="hm-card-btn"
+                          onClick={() => toggleHistoricalMap(m.id)}
+                          aria-pressed={active}
+                        >
+                          <span
+                            className="hm-thumb"
+                            style={{ backgroundImage: `url(${m.image})` }}
+                          />
+                          <span className="hm-card-title">{m.title}</span>
+                          {m.dateLabel && (
+                            <span className="hm-card-date">{m.dateLabel}</span>
+                          )}
+                        </button>
+                        {active && (
+                          <input
+                            type="range"
+                            className="hm-opacity"
+                            min={0}
+                            max={1}
+                            step={0.01}
+                            value={hmOpacities[m.id] ?? m.defaultOpacity}
+                            onChange={(e) =>
+                              setHmOpacities((prev) => ({
+                                ...prev,
+                                [m.id]: Number(e.target.value),
+                              }))
+                            }
+                            aria-label={`Opacidad de ${m.title}`}
+                          />
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+            <Button
+              type="button"
+              variant="ghost"
+              className="map-control historical-maps-toggle"
+              aria-label="Mapas históricos"
+              aria-expanded={hmPanelOpen}
+              onClick={() => setHmPanelOpen((v) => !v)}
+            >
+              <Layers aria-hidden size={17} strokeWidth={1.8} />
+            </Button>
+          </div>
+        )}
+
+        <Timeline
+          from={range[0]}
+          to={range[1]}
+          count={count}
+          onChange={(from, to) => setRange([from, to])}
+        />
+      </div>
 
       {selected && (
         <PhotoModal

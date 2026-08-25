@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  useTransition,
-} from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -20,8 +14,8 @@ import {
   MessageSquare,
   Plus,
   Save,
+  Settings,
   Trash2,
-  Type,
   Users,
   X,
 } from "lucide-react";
@@ -126,71 +120,25 @@ export default function AdminPanel({
   const [error, setError] = useState<string | null>(null);
   const [busy, startTransition] = useTransition();
 
-  const tabs: {
-    id: Tab;
-    label: string;
-    icon: LucideIcon;
-    count?: number;
-    badge?: number;
-  }[] = [
-    {
-      id: "fotos",
-      label: "Fotos",
-      icon: ImageIcon,
-      count: photos.length,
-      badge: pending.length,
-    },
-    {
-      id: "comentarios",
-      label: "Comentarios",
-      icon: MessageSquare,
-      count: comments.length,
-      badge: pendingComments.length,
-    },
+  /** Sin cuentas ni cifras: la barra lateral es solo navegación, no un resumen. */
+  const tabs: { id: Tab; label: string; icon: LucideIcon }[] = [
+    { id: "fotos", label: "Fotos", icon: ImageIcon },
+    { id: "comentarios", label: "Comentarios", icon: MessageSquare },
     ...(admin
       ? ([
-          {
-            id: "mapas",
-            label: "Mapas históricos",
-            icon: Map,
-            count: historicalMaps.length,
-          },
-          {
-            id: "personas",
-            label: "Usuarios",
-            icon: Users,
-            count: profiles.length,
-          },
-          { id: "textos", label: "Textos", icon: Type },
+          { id: "mapas", label: "Mapas", icon: Map },
+          { id: "personas", label: "Usuarios", icon: Users },
+          { id: "textos", label: "Config", icon: Settings },
         ] as const)
       : []),
   ];
 
   const tabsRef = useRef<HTMLDivElement>(null);
-  // La pastilla activa se dibuja una sola vez y viaja entre pestañas: hay que
-  // medir el botón elegido porque cada etiqueta tiene un ancho distinto.
-  const [marker, setMarker] = useState<{ left: number; width: number } | null>(
-    null
-  );
 
-  useLayoutEffect(() => {
-    const nav = tabsRef.current;
-    if (!nav) return;
-    const measure = () => {
-      const active = nav.querySelector<HTMLElement>('[data-tab-active="true"]');
-      if (active)
-        setMarker({ left: active.offsetLeft, width: active.offsetWidth });
-    };
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(nav);
-    return () => observer.disconnect();
-  }, [tab, tabs.length]);
-
-  /** Flechas entre pestañas, como espera un tablist. */
+  /** Flechas arriba/abajo entre pestañas, como espera un tablist vertical. */
   const onTabKeyDown = (event: React.KeyboardEvent) => {
     const step =
-      event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+      event.key === "ArrowDown" ? 1 : event.key === "ArrowUp" ? -1 : 0;
     if (!step) return;
     event.preventDefault();
     const index = tabs.findIndex((t) => t.id === tab);
@@ -470,9 +418,9 @@ export default function AdminPanel({
       : "No hay comentarios con este filtro.";
 
   return (
-    <main className="admin">
-      <header className={`admin-header${scrolled ? " scrolled" : ""}`}>
-        <div className="admin-header-left">
+    <main className="admin admin-with-sidebar">
+      <aside className="admin-sidebar">
+        <div className="admin-sidebar-head">
           <Link href="/" className="back-link">
             <ArrowLeft aria-hidden size={14} strokeWidth={1.8} /> Volver al mapa
           </Link>
@@ -480,49 +428,37 @@ export default function AdminPanel({
         </div>
 
         <nav
-          className="admin-tabs"
+          className="admin-side-nav"
           role="tablist"
+          aria-orientation="vertical"
           ref={tabsRef}
           onKeyDown={onTabKeyDown}
         >
-          {marker && (
-            <span
-              aria-hidden
-              className="admin-tabs-marker"
-              style={{ transform: `translateX(${marker.left}px)`, width: marker.width }}
-            />
-          )}
-          {tabs.map(({ id, label, icon: Icon, count, badge }) => (
+          {tabs.map(({ id, label, icon: Icon }) => (
             <Button
               key={id}
               variant="ghost"
               role="tab"
               tabIndex={tab === id ? 0 : -1}
               aria-selected={tab === id}
-              data-tab-active={tab === id}
               className={tab === id ? "active" : ""}
               onClick={() => setTab(id)}
             >
-              <Icon aria-hidden size={14} strokeWidth={1.8} />
+              <Icon aria-hidden size={15} strokeWidth={1.8} />
               {label}
-              {count !== undefined && <span className="tab-count">{count}</span>}
-              {badge !== undefined && badge > 0 && (
-                <span className="tab-badge" title="Pendientes de revisar">
-                  {badge}
-                </span>
-              )}
             </Button>
           ))}
         </nav>
+      </aside>
 
-        <div className="admin-actions">
+      <div className="admin-main">
+        <header className={`admin-topbar${scrolled ? " scrolled" : ""}`}>
           <UserMenu viewer={viewer} showSubmit={false} />
-        </div>
-      </header>
+        </header>
 
-      {error && <p className="admin-error">{error}</p>}
+        {error && <p className="admin-error">{error}</p>}
 
-      {tab === "fotos" && (
+        {tab === "fotos" && (
         <div className="photos-layout">
           <aside className="photos-list-pane">
             <Button
@@ -871,6 +807,7 @@ export default function AdminPanel({
           </ul>
         </div>
       )}
+      </div>
     </main>
   );
 }
