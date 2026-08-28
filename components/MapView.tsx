@@ -39,9 +39,9 @@ const MAP_STYLE: maplibregl.StyleSpecification = {
       // grises las calles casi desaparecen y no hay filtro CSS que lo arregle
       // (contrast() pivota en el gris medio y aclara aún más los casi-blancos).
       tiles: [
-        `https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png?api_key=${process.env.NEXT_PUBLIC_CARTO_API_KEY}`,
-        `https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png?api_key=${process.env.NEXT_PUBLIC_CARTO_API_KEY}`,
-        `https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png?api_key=${process.env.NEXT_PUBLIC_CARTO_API_KEY}`,
+        `https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png?key=${process.env.NEXT_PUBLIC_CARTO_API_KEY}`,
+        `https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png?key=${process.env.NEXT_PUBLIC_CARTO_API_KEY}`,
+        `https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png?key=${process.env.NEXT_PUBLIC_CARTO_API_KEY}`,
       ],
       tileSize: 256,
       attribution:
