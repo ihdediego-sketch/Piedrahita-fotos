@@ -4,6 +4,8 @@ import {
   getManagedComments,
   getManagedHistoricalMaps,
   getManagedPhotos,
+  getManagedStories,
+  getManagedStoryComments,
   getProfiles,
   getSiteContent,
   getViewer,
@@ -19,20 +21,25 @@ export default async function AdminPage() {
   // Un usuario registrado sin permisos tiene su propia pantalla, no un 404
   if (!isStaff(viewer)) redirect("/subir");
 
-  const [photos, historicalMaps, comments, site, profiles] = await Promise.all([
-    getManagedPhotos(),
-    getManagedHistoricalMaps(),
-    getManagedComments(),
-    getSiteContent(),
-    isAdmin(viewer) ? getProfiles() : Promise.resolve([]),
-  ]);
+  const [photos, stories, historicalMaps, comments, storyComments, site, profiles] =
+    await Promise.all([
+      getManagedPhotos(),
+      getManagedStories(),
+      getManagedHistoricalMaps(),
+      getManagedComments(),
+      getManagedStoryComments(),
+      getSiteContent(),
+      isAdmin(viewer) ? getProfiles() : Promise.resolve([]),
+    ]);
 
   return (
     <AdminPanel
       viewer={viewer}
       photos={photos}
+      stories={stories}
       historicalMaps={historicalMaps}
       comments={comments}
+      storyComments={storyComments}
       site={site}
       profiles={profiles}
     />

@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
+import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
 import { Markdown, type MarkdownStorage } from "tiptap-markdown";
 import {
@@ -14,6 +15,7 @@ import {
   ListOrdered,
   Quote,
   Link as LinkIcon,
+  ImageIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -44,17 +46,22 @@ export default function MarkdownEditor({
   onChange,
   placeholder,
   className,
+  onRequestImage,
 }: {
   value: string;
   onChange: (markdown: string) => void;
   placeholder?: string;
   className?: string;
+  /** Si se pasa, aparece un botón "Insertar foto" en la barra. Debe abrir el
+   * selector de fotos y devolver la elegida, o null si se cancela. */
+  onRequestImage?: () => Promise<{ src: string; alt: string } | null>;
 }) {
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
       StarterKit.configure({ heading: false }),
       Link.configure({ openOnClick: false, autolink: true }),
+      ...(onRequestImage ? [Image] : []),
       Markdown.configure({ html: false }),
       Placeholder.configure({ placeholder: placeholder ?? "" }),
     ],
@@ -149,6 +156,21 @@ export default function MarkdownEditor({
       active: editor.isActive("link"),
       onClick: setLink,
     },
+    ...(onRequestImage
+      ? [
+          {
+            label: "Insertar foto",
+            icon: <ImageIcon aria-hidden size={14} strokeWidth={2} />,
+            active: false,
+            onClick: () => {
+              onRequestImage().then((picked) => {
+                if (!picked) return;
+                editor.chain().focus().setImage(picked).run();
+              });
+            },
+          },
+        ]
+      : []),
   ];
 
   return (

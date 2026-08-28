@@ -94,6 +94,73 @@ export type Comment = {
   createdAt: string;
 };
 
+/** Fila tal cual vive en la tabla `stories`. */
+export type StoryRow = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  content_md: string;
+  /** Ruta dentro del bucket `photos`, no una URL. */
+  cover_image_path: string;
+  seo_title: string;
+  seo_description: string;
+  status: PhotoStatus;
+  author_id: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  review_note: string | null;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+/** Lo que consumen el listado y la ficha: la fila con la URL ya resuelta. */
+export type Story = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  contentMd: string;
+  /** URL pública de la portada en Storage. Vacía si no tiene. */
+  coverImage: string;
+  coverImagePath: string;
+  seoTitle: string;
+  seoDescription: string;
+  status: PhotoStatus;
+  authorId: string | null;
+  authorName: string;
+  reviewNote: string | null;
+  publishedAt: string | null;
+  createdAt: string;
+  likes: number;
+  comments: number;
+};
+
+/** Fila tal cual vive en la tabla `story_comments`. */
+export type StoryCommentRow = {
+  id: string;
+  story_id: string;
+  user_id: string;
+  body: string;
+  status: PhotoStatus;
+  review_note: string | null;
+  created_at: string;
+};
+
+export type StoryComment = {
+  id: string;
+  storyId: string;
+  storyTitle: string;
+  storySlug: string;
+  userId: string;
+  authorName: string;
+  body: string;
+  status: PhotoStatus;
+  reviewNote: string | null;
+  createdAt: string;
+};
+
 /** Fila tal cual vive en la tabla `historical_maps`. */
 export type HistoricalMapRow = {
   id: string;

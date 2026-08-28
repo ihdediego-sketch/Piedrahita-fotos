@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { COMMENT_SELECT, toComment } from "@/lib/photos";
-import type { Comment, PhotoStatus } from "@/lib/types";
+import { STORY_COMMENT_SELECT, toStoryComment } from "@/lib/stories";
+import type { Comment, PhotoStatus, StoryComment } from "@/lib/types";
 
 export type LikeResult =
   | { ok: true; liked: boolean; likes: number }
@@ -116,6 +117,123 @@ export async function setCommentStatus(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("comments")
+    .update({ status, review_note: note?.trim() || null })
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
+
+  if (error) return { ok: false, error: error.message };
+  if (!data) return { ok: false, error: "No tienes permiso para moderarlo." };
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
+/** Alterna el me gusta del visitante sobre una historia y devuelve el total. */
+export async function toggleStoryLike(storyId: string): Promise<LikeResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Entra para dar me gusta." };
+
+  const { data: existing } = await supabase
+    .from("story_likes")
+    .select("story_id")
+    .eq("story_id", storyId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  const { error } = existing
+    ? await supabase
+        .from("story_likes")
+        .delete()
+        .eq("story_id", storyId)
+        .eq("user_id", user.id)
+    : await supabase.from("story_likes").insert({ story_id: storyId, user_id: user.id });
+
+  if (error) return { ok: false, error: error.message };
+
+  const { count } = await supabase
+    .from("story_likes")
+    .select("story_id", { count: "exact", head: true })
+    .eq("story_id", storyId);
+
+  revalidatePath("/", "layout");
+  return { ok: true, liked: !existing, likes: count ?? 0 };
+}
+
+export type StoryCommentResult =
+  | { ok: true; comment: StoryComment }
+  | { ok: false; error: string };
+
+/** Igual que en las fotos: un colaborador o admin publica al momento, el
+ * resto envía a revisión (lo fuerza también el trigger `guard_story_comment`,
+ * esto es solo para pedir lo que se quiere). */
+export async function addStoryComment(
+  storyId: string,
+  body: string
+): Promise<StoryCommentResult> {
+  const text = body.trim();
+  if (!text) return { ok: false, error: "Escribe algo antes de enviar." };
+  if (text.length > 2000)
+    return { ok: false, error: "El comentario es demasiado largo." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Entra para comentar." };
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+  const canPublish = profile?.role === "admin" || profile?.role === "colaborador";
+
+  const { data, error } = await supabase
+    .from("story_comments")
+    .insert({
+      story_id: storyId,
+      user_id: user.id,
+      body: text,
+      status: canPublish ? "published" : "pending",
+    })
+    .select(STORY_COMMENT_SELECT)
+    .single();
+
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/", "layout");
+  return { ok: true, comment: toStoryComment(data) };
+}
+
+/** Los comentarios de una historia, para cargarlos al abrir la ficha. La RLS
+ * ya limita lo que vuelve: publicados para cualquiera, más los propios. */
+export async function listStoryComments(storyId: string): Promise<StoryComment[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("story_comments")
+    .select(STORY_COMMENT_SELECT)
+    .eq("story_id", storyId)
+    .order("created_at", { ascending: true });
+
+  return (data ?? []).map(toStoryComment);
+}
+
+/**
+ * Aprobar, rechazar o retirar un comentario de historia. Staff puede
+ * moverlo a cualquier estado; el propio autor solo puede dejarlo en
+ * 'rejected' (retirar lo suyo).
+ */
+export async function setStoryCommentStatus(
+  id: string,
+  status: PhotoStatus,
+  note?: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("story_comments")
     .update({ status, review_note: note?.trim() || null })
     .eq("id", id)
     .select("id")

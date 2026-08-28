@@ -2,6 +2,7 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { COMMENT_SELECT, avatarUrl, toComment, toPhoto } from "@/lib/photos";
 import { toHistoricalMap } from "@/lib/historical-maps";
+import { STORY_COMMENT_SELECT, toStory, toStoryComment } from "@/lib/stories";
 import type {
   Comment,
   HistoricalMap,
@@ -10,12 +11,18 @@ import type {
   Profile,
   Role,
   SiteContent,
+  Story,
+  StoryComment,
   Viewer,
 } from "@/lib/types";
 
 /** Columnas de `photos` + conteos incrustados + nombre del autor. */
 const PHOTO_SELECT =
   "*, likes(count), comments(count), author:profiles!photos_author_id_fkey(display_name)";
+
+/** Columnas de `stories` + conteos incrustados + nombre del autor. */
+const STORY_SELECT =
+  "*, likes:story_likes(count), comments:story_comments(count), author:profiles!stories_author_id_fkey(display_name)";
 
 const FALLBACK_SITE: SiteContent = {
   title: "Piedrahíta",
@@ -176,6 +183,88 @@ export async function getMyLikedPhotos(userId: string): Promise<Photo[]> {
     .map(toPhoto);
 }
 
+
+/** Las historias publicadas, para el listado público. */
+export async function getPublishedStories(): Promise<Story[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("stories")
+    .select(STORY_SELECT)
+    .eq("status", "published")
+    .order("published_at", { ascending: false });
+
+  if (error) throw error;
+  return (data ?? []).map(toStory);
+}
+
+/** Una historia publicada por su slug, para la ficha. RLS ya filtra el resto. */
+export async function getStoryBySlug(slug: string): Promise<Story | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("stories")
+    .select(STORY_SELECT)
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data ? toStory(data) : null;
+}
+
+/** Las historias que puede ver el panel: staff todas, autor las suyas. */
+export async function getManagedStories(status?: PhotoStatus): Promise<Story[]> {
+  const supabase = await createClient();
+  let query = supabase
+    .from("stories")
+    .select(STORY_SELECT)
+    .order("created_at", { ascending: false });
+  if (status) query = query.eq("status", status);
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return (data ?? []).map(toStory);
+}
+
+/** Las historias que ha enviado quien mira, sea cual sea su estado. */
+export async function getMyStories(userId: string): Promise<Story[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("stories")
+    .select(STORY_SELECT)
+    .eq("author_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return (data ?? []).map(toStory);
+}
+
+/** Los comentarios de historias que puede ver el panel: staff todos, para moderar. */
+export async function getManagedStoryComments(status?: PhotoStatus): Promise<StoryComment[]> {
+  const supabase = await createClient();
+  let query = supabase
+    .from("story_comments")
+    .select(STORY_COMMENT_SELECT)
+    .order("created_at", { ascending: false });
+  if (status) query = query.eq("status", status);
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return (data ?? []).map(toStoryComment);
+}
+
+/** Ids de las historias a las que el visitante ya ha dado me gusta. */
+export async function getMyStoryLikes(): Promise<string[]> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data } = await supabase
+    .from("story_likes")
+    .select("story_id")
+    .eq("user_id", user.id);
+  return (data ?? []).map((r) => r.story_id as string);
+}
 
 /** Los mapas históricos publicados, para superponerlos en el mapa público. */
 export async function getPublishedHistoricalMaps(): Promise<HistoricalMap[]> {

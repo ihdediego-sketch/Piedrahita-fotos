@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
+  BookOpen,
   Check,
   Circle,
   Eye,
@@ -36,13 +37,19 @@ import HistoricalMapFields, {
   toDraft as toHmDraft,
   type Draft as HmDraft,
 } from "@/components/HistoricalMapEditor";
+import StoryFields, {
+  emptyDraft as emptyStoryDraft,
+  toDraft as toStoryDraft,
+  type Draft as StoryDraft,
+} from "@/components/StoryEditor";
 import {
   savePhoto,
   saveSiteContent,
   setPhotoStatus,
   setRole,
 } from "@/app/actions/photos";
-import { setCommentStatus } from "@/app/actions/social";
+import { saveStory, setStoryStatus } from "@/app/actions/stories";
+import { setCommentStatus, setStoryCommentStatus } from "@/app/actions/social";
 import {
   deleteHistoricalMap,
   saveHistoricalMap,
@@ -63,11 +70,14 @@ import {
   type Profile,
   type Role,
   type SiteContent,
+  type Story,
+  type StoryComment,
   type Viewer,
 } from "@/lib/types";
 import "./admin.css";
 
-type Tab = "fotos" | "mapas" | "comentarios" | "textos" | "personas";
+type Tab = "fotos" | "historias" | "mapas" | "comentarios" | "textos" | "personas";
+type CommentKind = "fotos" | "historias";
 
 /** «todos»: el filtro de personas apagado, sin rol elegido. */
 type PeopleFilter = Role | "todos";
@@ -78,15 +88,19 @@ const PHOTO_FILTERS: PhotoStatus[] = ["published", "pending", "rejected"];
 export default function AdminPanel({
   viewer,
   photos,
+  stories,
   historicalMaps,
   comments,
+  storyComments,
   site,
   profiles,
 }: {
   viewer: Viewer;
   photos: Photo[];
+  stories: Story[];
   historicalMaps: HistoricalMap[];
   comments: Comment[];
+  storyComments: StoryComment[];
   site: SiteContent;
   profiles: Profile[];
 }) {
@@ -94,7 +108,9 @@ export default function AdminPanel({
   const admin = isAdmin(viewer);
 
   const pending = photos.filter((p) => p.status === "pending");
+  const pendingStories = stories.filter((s) => s.status === "pending");
   const pendingComments = comments.filter((c) => c.status === "pending");
+  const pendingStoryComments = storyComments.filter((c) => c.status === "pending");
 
   const [tab, setTab] = useState<Tab>("fotos");
   const { scrolled, onScroll, reset: resetScrolled } = useScrollBorder();
@@ -106,14 +122,23 @@ export default function AdminPanel({
   const [photoFilter, setPhotoFilter] = useState<PhotoStatus>(
     pending.length > 0 ? "pending" : "published"
   );
+  const [storyFilter, setStoryFilter] = useState<PhotoStatus>(
+    pendingStories.length > 0 ? "pending" : "published"
+  );
+  const [commentKind, setCommentKind] = useState<CommentKind>("fotos");
   const [commentFilter, setCommentFilter] = useState<PhotoStatus>(
     pendingComments.length > 0 ? "pending" : "published"
+  );
+  const [storyCommentFilter, setStoryCommentFilter] = useState<PhotoStatus>(
+    pendingStoryComments.length > 0 ? "pending" : "published"
   );
   const [peopleFilter, setPeopleFilter] = useState<PeopleFilter>("todos");
   const [draft, setDraft] = useState<Draft | null>(null);
   // Copia del borrador tal como se abrió: lo que permite saber si hay cambios
   // que guardar y, por tanto, si el botón de guardar tiene algo que hacer.
   const [pristine, setPristine] = useState<Draft | null>(null);
+  const [storyDraft, setStoryDraft] = useState<StoryDraft | null>(null);
+  const [storyPristine, setStoryPristine] = useState<StoryDraft | null>(null);
   const [hmDraft, setHmDraft] = useState<HmDraft | null>(null);
   const [hmPristine, setHmPristine] = useState<HmDraft | null>(null);
   const [siteDraft, setSiteDraft] = useState(site);
@@ -123,6 +148,7 @@ export default function AdminPanel({
   /** Sin cuentas ni cifras: la barra lateral es solo navegación, no un resumen. */
   const tabs: { id: Tab; label: string; icon: LucideIcon }[] = [
     { id: "fotos", label: "Fotos", icon: ImageIcon },
+    { id: "historias", label: "Historias", icon: BookOpen },
     { id: "comentarios", label: "Comentarios", icon: MessageSquare },
     ...(admin
       ? ([
@@ -150,7 +176,11 @@ export default function AdminPanel({
   };
 
   const visiblePhotos = photos.filter((p) => p.status === photoFilter);
+  const visibleStories = stories.filter((s) => s.status === storyFilter);
   const visibleComments = comments.filter((c) => c.status === commentFilter);
+  const visibleStoryComments = storyComments.filter(
+    (c) => c.status === storyCommentFilter
+  );
 
   const visibleProfiles =
     peopleFilter === "todos"
@@ -170,6 +200,20 @@ export default function AdminPanel({
 
   const draftDirty =
     !!draft && JSON.stringify(draft) !== JSON.stringify(pristine);
+
+  /** Mismo patrón maestro-detalle que las fotos, para una historia. */
+  const openStoryDraft = (next: StoryDraft) => {
+    setStoryDraft(next);
+    setStoryPristine(next);
+  };
+
+  const closeStoryDraft = () => {
+    setStoryDraft(null);
+    setStoryPristine(null);
+  };
+
+  const storyDraftDirty =
+    !!storyDraft && JSON.stringify(storyDraft) !== JSON.stringify(storyPristine);
 
   /** Mismo patrón maestro-detalle que las fotos, para un mapa histórico. */
   const openHmDraft = (next: HmDraft) => {
@@ -194,11 +238,11 @@ export default function AdminPanel({
   useEffect(() => setSiteDraft(site), [site]);
 
   useEffect(() => {
-    if (!draftDirty && !hmDraftDirty && !siteDirty) return;
+    if (!draftDirty && !storyDraftDirty && !hmDraftDirty && !siteDirty) return;
     const warn = (e: BeforeUnloadEvent) => e.preventDefault();
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
-  }, [draftDirty, hmDraftDirty, siteDirty]);
+  }, [draftDirty, storyDraftDirty, hmDraftDirty, siteDirty]);
 
   const run = (fn: () => Promise<{ ok: boolean; error?: string }>) => {
     setError(null);
@@ -214,6 +258,15 @@ export default function AdminPanel({
     run(async () => {
       const res = await savePhoto(draft);
       if (res.ok) closeDraft();
+      return res;
+    });
+  };
+
+  const saveStoryDraft = () => {
+    if (!storyDraft) return;
+    run(async () => {
+      const res = await saveStory(storyDraft);
+      if (res.ok) closeStoryDraft();
       return res;
     });
   };
@@ -243,6 +296,22 @@ export default function AdminPanel({
         ? (prompt(`Motivo del descarte de «${photo.title}» (opcional):`) ?? "")
         : "";
     run(() => setPhotoStatus(photo.id, status, note));
+  };
+
+  const moderateStory = (story: Story, status: PhotoStatus) => {
+    const note =
+      status === "rejected"
+        ? (prompt(`Motivo del descarte de «${story.title}» (opcional):`) ?? "")
+        : "";
+    run(() => setStoryStatus(story.id, status, note));
+  };
+
+  const moderateStoryComment = (comment: StoryComment, status: PhotoStatus) => {
+    const note =
+      status === "rejected"
+        ? (prompt(`Motivo del descarte del comentario de ${comment.authorName} (opcional):`) ?? "")
+        : "";
+    run(() => setStoryCommentStatus(comment.id, status, note));
   };
 
   const moderateComment = (comment: Comment, status: PhotoStatus) => {
@@ -283,6 +352,62 @@ export default function AdminPanel({
       </span>
     );
   };
+
+  /** Los mismos botones de moderación que las fotos, para una historia. */
+  const storyRowActions = (s: Story) => {
+    if (s.status === "published") return null;
+    return (
+      <span className="row-actions">
+        <Button
+          variant="ghost"
+          className="approve-btn"
+          title="Aprobar y publicar"
+          aria-label="Aprobar"
+          disabled={busy}
+          onClick={() => moderateStory(s, "published")}
+        >
+          <Check aria-hidden size={14} strokeWidth={2} />
+        </Button>
+        {s.status === "pending" && (
+          <Button
+            variant="ghost"
+            className="reject-btn"
+            title="Descartar"
+            aria-label="Descartar"
+            disabled={busy}
+            onClick={() => moderateStory(s, "rejected")}
+          >
+            <X aria-hidden size={14} strokeWidth={2} />
+          </Button>
+        )}
+      </span>
+    );
+  };
+
+  const storyRow = (s: Story) => (
+    <li key={s.id}>
+      <Button
+        variant="ghost"
+        className={`photo-row${storyDraft?.id === s.id ? " selected" : ""}`}
+        onClick={() => openStoryDraft(toStoryDraft(s))}
+      >
+        <span className="thumb">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {s.coverImage && <img src={s.coverImage} alt="" />}
+        </span>
+        <span className="photo-row-text">
+          <span className="photo-row-title">{s.title || "(sin título)"}</span>
+          <span className="photo-row-meta">
+            <span className={`status-dot ${s.status}`} aria-hidden />
+            {s.authorName && (
+              <span className="photo-row-author">{s.authorName}</span>
+            )}
+          </span>
+        </span>
+      </Button>
+      {storyRowActions(s)}
+    </li>
+  );
 
   const photoRow = (p: Photo) => (
     <li key={p.id}>
@@ -407,13 +532,76 @@ export default function AdminPanel({
     </li>
   );
 
+  /** Los mismos botones de moderación que los comentarios de fotos, para uno de historia. */
+  const storyCommentRowActions = (c: StoryComment) => {
+    return (
+      <span className="row-actions">
+        {c.status !== "published" && (
+          <Button
+            variant="ghost"
+            className="approve-btn"
+            title="Aprobar y publicar"
+            aria-label="Aprobar"
+            disabled={busy}
+            onClick={() => moderateStoryComment(c, "published")}
+          >
+            <Check aria-hidden size={14} strokeWidth={2} />
+          </Button>
+        )}
+        {c.status !== "rejected" && (
+          <Button
+            variant="ghost"
+            className="reject-btn"
+            title="Desactivar"
+            aria-label="Desactivar"
+            disabled={busy}
+            onClick={() => moderateStoryComment(c, "rejected")}
+          >
+            <X aria-hidden size={14} strokeWidth={2} />
+          </Button>
+        )}
+      </span>
+    );
+  };
+
+  const storyCommentRow = (c: StoryComment) => (
+    <li key={c.id}>
+      <div className="photo-row comment-row">
+        <span className="photo-row-text">
+          <span className="photo-row-title">
+            {c.storyTitle || "(sin historia)"}
+          </span>
+          <span className="photo-row-meta">
+            <span className={`status-dot ${c.status}`} aria-hidden />
+            {c.authorName}
+            <span className="photo-row-author">
+              · {new Date(c.createdAt).toLocaleDateString("es-ES")}
+            </span>
+          </span>
+          <span className="comment-row-body">{c.body}</span>
+        </span>
+      </div>
+      {storyCommentRowActions(c)}
+    </li>
+  );
+
   const emptyNote =
     photoFilter === "pending"
       ? "Nada por revisar. Todo al día."
       : "No hay fotografías con este filtro.";
 
+  const emptyStoryNote =
+    storyFilter === "pending"
+      ? "Nada por revisar. Todo al día."
+      : "No hay historias con este filtro.";
+
   const emptyCommentNote =
     commentFilter === "pending"
+      ? "Nada por revisar. Todo al día."
+      : "No hay comentarios con este filtro.";
+
+  const emptyStoryCommentNote =
+    storyCommentFilter === "pending"
       ? "Nada por revisar. Todo al día."
       : "No hay comentarios con este filtro.";
 
@@ -586,6 +774,115 @@ export default function AdminPanel({
         </div>
       )}
 
+      {tab === "historias" && (
+        <div className="photos-layout">
+          <aside className="photos-list-pane">
+            <Button
+              variant="ghost"
+              className="add-btn"
+              onClick={() =>
+                openStoryDraft({ ...emptyStoryDraft(), status: "published" })
+              }
+            >
+              <Plus aria-hidden size={13} strokeWidth={2} /> Añadir historia
+            </Button>
+
+            <SegmentedFilter
+              ariaLabel="Filtrar por estado"
+              value={storyFilter}
+              onChange={setStoryFilter}
+              options={PHOTO_FILTERS.map((status) => ({
+                id: status,
+                label: (
+                  <>
+                    {STATUS_LABELS_PLURAL[status]}
+                    <span className="filter-count">
+                      {stories.filter((s) => s.status === status).length}
+                    </span>
+                  </>
+                ),
+              }))}
+            />
+
+            {visibleStories.length === 0 && (
+              <p className="hint pane-note">{emptyStoryNote}</p>
+            )}
+
+            <ul className="photo-list" onScroll={onScroll}>
+              {visibleStories.map(storyRow)}
+            </ul>
+          </aside>
+
+          <section className="photo-detail-pane">
+            {storyDraft ? (
+              <div className="photo-form">
+                <div className="photo-form-head">
+                  <h2>{storyDraft.title || "Nueva historia"}</h2>
+                  <div className="admin-actions">
+                    {storyDraft.id && (
+                      <label
+                        className={`publish-switch${
+                          storyDraft.status === "published" ? " on" : ""
+                        }`}
+                        title={
+                          storyDraft.status === "published"
+                            ? "Quitar de Historias sin borrarla"
+                            : "Mostrarla en Historias"
+                        }
+                      >
+                        {storyDraft.status === "published" ? (
+                          <Eye aria-hidden size={15} strokeWidth={1.8} />
+                        ) : (
+                          <EyeOff aria-hidden size={15} strokeWidth={1.8} />
+                        )}
+                        {storyDraft.status === "published" ? "Publicada" : "Oculta"}
+                        <Switch
+                          className="data-checked:bg-success"
+                          checked={storyDraft.status === "published"}
+                          disabled={busy}
+                          onCheckedChange={(checked) =>
+                            run(() =>
+                              setStoryStatus(
+                                storyDraft.id!,
+                                checked ? "published" : "pending"
+                              )
+                            )
+                          }
+                        />
+                      </label>
+                    )}
+                    {storyDraftDirty && (
+                      <Button
+                        variant="ghost"
+                        className="form-action save-btn"
+                        onClick={saveStoryDraft}
+                        disabled={busy}
+                      >
+                        <Save aria-hidden size={15} strokeWidth={1.8} />
+                        {busy ? "Guardando…" : "Guardar"}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="photo-form-body" onScroll={onScroll}>
+                  <StoryFields
+                    key={storyDraft.id ?? "nueva"}
+                    draft={storyDraft}
+                    onChange={setStoryDraft}
+                    photos={photos.filter((p) => p.status === "published")}
+                  />
+                </div>
+              </div>
+            ) : (
+              <p className="empty-detail">
+                Selecciona una historia de la lista para editarla.
+              </p>
+            )}
+          </section>
+        </div>
+      )}
+
       {tab === "mapas" && admin && (
         <div className="photos-layout">
           <aside className="photos-list-pane">
@@ -675,27 +972,71 @@ export default function AdminPanel({
       {tab === "comentarios" && (
         <div className="pane pane-centered" onScroll={onScroll}>
           <SegmentedFilter
-            ariaLabel="Filtrar por estado"
-            value={commentFilter}
-            onChange={setCommentFilter}
-            options={PHOTO_FILTERS.map((status) => ({
-              id: status,
-              label: (
-                <>
-                  {STATUS_LABELS_PLURAL[status]}
-                  <span className="filter-count">
-                    {comments.filter((c) => c.status === status).length}
-                  </span>
-                </>
-              ),
-            }))}
+            ariaLabel="Filtrar por tipo"
+            value={commentKind}
+            onChange={setCommentKind}
+            options={[
+              { id: "fotos" as const, label: `Fotos (${comments.length})` },
+              {
+                id: "historias" as const,
+                label: `Historias (${storyComments.length})`,
+              },
+            ]}
           />
 
-          {visibleComments.length === 0 && (
-            <p className="hint pane-note">{emptyCommentNote}</p>
-          )}
+          {commentKind === "fotos" ? (
+            <>
+              <SegmentedFilter
+                ariaLabel="Filtrar por estado"
+                value={commentFilter}
+                onChange={setCommentFilter}
+                options={PHOTO_FILTERS.map((status) => ({
+                  id: status,
+                  label: (
+                    <>
+                      {STATUS_LABELS_PLURAL[status]}
+                      <span className="filter-count">
+                        {comments.filter((c) => c.status === status).length}
+                      </span>
+                    </>
+                  ),
+                }))}
+              />
 
-          <ul className="photo-list">{visibleComments.map(commentRow)}</ul>
+              {visibleComments.length === 0 && (
+                <p className="hint pane-note">{emptyCommentNote}</p>
+              )}
+
+              <ul className="photo-list">{visibleComments.map(commentRow)}</ul>
+            </>
+          ) : (
+            <>
+              <SegmentedFilter
+                ariaLabel="Filtrar por estado"
+                value={storyCommentFilter}
+                onChange={setStoryCommentFilter}
+                options={PHOTO_FILTERS.map((status) => ({
+                  id: status,
+                  label: (
+                    <>
+                      {STATUS_LABELS_PLURAL[status]}
+                      <span className="filter-count">
+                        {storyComments.filter((c) => c.status === status).length}
+                      </span>
+                    </>
+                  ),
+                }))}
+              />
+
+              {visibleStoryComments.length === 0 && (
+                <p className="hint pane-note">{emptyStoryCommentNote}</p>
+              )}
+
+              <ul className="photo-list">
+                {visibleStoryComments.map(storyCommentRow)}
+              </ul>
+            </>
+          )}
         </div>
       )}
 
