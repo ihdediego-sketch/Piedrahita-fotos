@@ -218,33 +218,41 @@ export default function StoryFields({
   if (compact) {
     return (
       <div className="story-editor story-editor-compact">
-        <Input
-          type="text"
-          className="story-editor-title-plain"
-          placeholder="Título de tu historia"
-          value={draft.title}
-          onChange={(e) => set("title", e.target.value)}
-        />
+        <div className="story-editor-compact-layout">
+          <div className="story-editor-main-compact">
+            <Input
+              type="text"
+              className="story-editor-title-plain"
+              placeholder="Título de tu historia"
+              value={draft.title}
+              onChange={(e) => set("title", e.target.value)}
+            />
 
-        <MarkdownEditor
-          className="story-editor-body-compact"
-          value={draft.contentMd}
-          onChange={(md) => set("contentMd", md)}
-          placeholder="Escribe aquí. Cuenta lo que recuerdes, lo que te contaron, lo que encontraste…"
-          onRequestImage={requestBodyImage}
-        />
-
-        <details className="story-editor-more" open={detailsOpen}>
-          <summary>
-            <ChevronDown aria-hidden size={14} strokeWidth={2} />
-            Portada, extracto y SEO
-            <span className="hint">(opcional)</span>
-          </summary>
-          <div className="story-editor-more-fields">
-            <div className="story-editor-more-cover">{coverField}</div>
-            {seoFields}
+            <MarkdownEditor
+              className="story-editor-body-compact"
+              value={draft.contentMd}
+              onChange={(md) => set("contentMd", md)}
+              placeholder="Escribe aquí. Cuenta lo que recuerdes, lo que te contaron, lo que encontraste…"
+              onRequestImage={requestBodyImage}
+            />
           </div>
-        </details>
+
+          {/* En escritorio esta columna queda siempre a la vista (1/3, a la
+              derecha del texto); en móvil sigue siendo el mismo <details>
+              plegado de siempre, para no competir con la escritura en una
+              pantalla estrecha. */}
+          <details className="story-editor-more story-editor-more-compact" open={detailsOpen}>
+            <summary>
+              <ChevronDown aria-hidden size={14} strokeWidth={2} />
+              Portada, extracto y SEO
+              <span className="hint">(opcional)</span>
+            </summary>
+            <div className="story-editor-more-fields">
+              <div className="story-editor-more-cover">{coverField}</div>
+              {seoFields}
+            </div>
+          </details>
+        </div>
 
         {picker}
       </div>
