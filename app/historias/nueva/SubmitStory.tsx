@@ -66,9 +66,9 @@ export default function SubmitStory({
   };
 
   return (
-    <main className="admin">
+    <main className="admin story-write-page">
       <ToolHeader
-        title={editing ? "Editar tu historia" : "Escribir una historia"}
+        title={editing ? "Editar" : "Escribir"}
         viewer={viewer}
         scrolled={scrolled}
         savedLabel={
@@ -86,18 +86,11 @@ export default function SubmitStory({
           onClick={submit}
           disabled={pending}
         >
-          {pending ? "Guardando…" : editing ? "Guardar cambios" : "Enviar"}
+          {pending ? "Guardando…" : editing ? "Guardar cambios" : "Publicar"}
         </Button>
       </ToolHeader>
 
-      {!canPublish && (
-        <p className="hint pane-note">
-          Tu historia no aparecerá publicada hasta que un colaborador la
-          revise. Mientras esté pendiente puedes seguir editándola.
-        </p>
-      )}
-
-      {error && <p className="admin-error">{error}</p>}
+      {error && <p className="admin-error story-write-error">{error}</p>}
 
       <div className="pane" onScroll={onScroll}>
         <StoryFields
@@ -107,36 +100,48 @@ export default function SubmitStory({
           photos={photos}
           compact
         />
-      </div>
 
-      {mine.length > 0 && (
-        <div className="pane-note">
-          <p className="hint">Tus historias:</p>
-          <ul className="mine-list">
-            {mine.map((s) => (
-              <li key={s.id}>
-                <button
-                  type="button"
-                  className="mine-list-item"
-                  onClick={() => {
-                    setDraft(toDraft(s));
-                    setEditing(s.id);
-                    setDone(false);
-                  }}
-                >
-                  <span className={`status-dot ${s.status}`} aria-hidden />
-                  {s.title || "(sin título)"}
-                  <span className="hint"> · {STATUS_LABELS[s.status]}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
+        {/* Todo lo que no es escribir queda al fondo, plegado por su cuenta:
+            ni el aviso de revisión ni el historial de envíos deben competir
+            con el texto mientras se redacta. */}
+        <div className="story-write-footer">
+          {!canPublish && (
+            <p className="hint">
+              Tu historia no aparecerá publicada hasta que un colaborador la
+              revise. Mientras esté pendiente puedes seguir editándola.
+            </p>
+          )}
+
+          {mine.length > 0 && (
+            <details className="story-write-mine">
+              <summary>Tus historias ({mine.length})</summary>
+              <ul className="mine-list">
+                {mine.map((s) => (
+                  <li key={s.id}>
+                    <button
+                      type="button"
+                      className="mine-list-item"
+                      onClick={() => {
+                        setDraft(toDraft(s));
+                        setEditing(s.id);
+                        setDone(false);
+                      }}
+                    >
+                      <span className={`status-dot ${s.status}`} aria-hidden />
+                      {s.title || "(sin título)"}
+                      <span className="hint"> · {STATUS_LABELS[s.status]}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+
+          <Link href="/historias" className="hint story-write-back-link">
+            Ver todas las historias publicadas →
+          </Link>
         </div>
-      )}
-
-      <p className="hint pane-note">
-        <Link href="/historias">Ver todas las historias publicadas →</Link>
-      </p>
+      </div>
     </main>
   );
 }

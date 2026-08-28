@@ -16,6 +16,7 @@ import {
   Plus,
   Save,
   Settings,
+  Star,
   Trash2,
   Users,
   X,
@@ -858,6 +859,26 @@ export default function AdminPanel({
                         />
                       </label>
                     )}
+                    <label
+                      className={`publish-switch${storyDraft.featured ? " on" : ""}`}
+                      title="Se muestra el doble de grande que las demás en el listado de Historias"
+                    >
+                      <Star
+                        aria-hidden
+                        size={15}
+                        strokeWidth={1.8}
+                        fill={storyDraft.featured ? "currentColor" : "none"}
+                      />
+                      Destacada
+                      <Switch
+                        className="data-checked:bg-success"
+                        checked={storyDraft.featured}
+                        disabled={busy}
+                        onCheckedChange={(checked) =>
+                          setStoryDraft({ ...storyDraft, featured: checked === true })
+                        }
+                      />
+                    </label>
                     {storyDraftDirty && (
                       <Button
                         variant="ghost"

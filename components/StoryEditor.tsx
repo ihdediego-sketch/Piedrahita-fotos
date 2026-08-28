@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { ChevronDown, Images, Star } from "lucide-react";
+import { ChevronDown, Images } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import MarkdownEditor from "@/components/MarkdownEditor";
@@ -220,43 +219,39 @@ export default function StoryFields({
   );
 
   if (compact) {
+    // Una sola columna, centrada, sin nada al lado que compita con el
+    // texto: ni portada ni SEO se ven mientras se escribe. El desplegable
+    // vive discretísimo al final, para quien quiera añadir algo antes de
+    // enviar, no para mirarlo de reojo mientras redacta.
     return (
-      <div className="story-editor story-editor-compact">
-        <div className="story-editor-compact-layout">
-          <div className="story-editor-main-compact">
-            <Input
-              type="text"
-              className="story-editor-title-plain"
-              placeholder="Título de tu historia"
-              value={draft.title}
-              onChange={(e) => set("title", e.target.value)}
-            />
+      <div className="story-write">
+        <Input
+          type="text"
+          className="story-write-title"
+          placeholder="Título de tu historia"
+          value={draft.title}
+          onChange={(e) => set("title", e.target.value)}
+        />
 
-            <MarkdownEditor
-              className="story-editor-body-compact"
-              value={draft.contentMd}
-              onChange={(md) => set("contentMd", md)}
-              placeholder="Escribe aquí. Cuenta lo que recuerdes, lo que te contaron, lo que encontraste…"
-              onRequestImage={requestBodyImage}
-            />
+        <MarkdownEditor
+          className="story-write-body"
+          value={draft.contentMd}
+          onChange={(md) => set("contentMd", md)}
+          placeholder="Escribe aquí. Cuenta lo que recuerdes, lo que te contaron, lo que encontraste…"
+          onRequestImage={requestBodyImage}
+        />
+
+        <details className="story-write-more" open={detailsOpen}>
+          <summary>
+            <ChevronDown aria-hidden size={13} strokeWidth={2} />
+            Portada, extracto y SEO
+            <span className="hint">(opcional)</span>
+          </summary>
+          <div className="story-editor-more-fields">
+            <div className="story-editor-more-cover">{coverField}</div>
+            {seoFields}
           </div>
-
-          {/* En escritorio esta columna queda siempre a la vista (1/3, a la
-              derecha del texto); en móvil sigue siendo el mismo <details>
-              plegado de siempre, para no competir con la escritura en una
-              pantalla estrecha. */}
-          <details className="story-editor-more story-editor-more-compact" open={detailsOpen}>
-            <summary>
-              <ChevronDown aria-hidden size={14} strokeWidth={2} />
-              Portada, extracto y SEO
-              <span className="hint">(opcional)</span>
-            </summary>
-            <div className="story-editor-more-fields">
-              <div className="story-editor-more-cover">{coverField}</div>
-              {seoFields}
-            </div>
-          </details>
-        </div>
+        </details>
 
         {picker}
       </div>
@@ -265,17 +260,6 @@ export default function StoryFields({
 
   return (
     <div className="story-editor">
-      <label
-        className={`story-featured-toggle${draft.featured ? " on" : ""}`}
-      >
-        <Checkbox
-          checked={draft.featured}
-          onCheckedChange={(checked) => set("featured", checked === true)}
-        />
-        <Star aria-hidden size={15} strokeWidth={1.8} fill={draft.featured ? "currentColor" : "none"} />
-        Destacada
-      </label>
-
       <div className="story-editor-main">
         <Input
           type="text"
