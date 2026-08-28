@@ -17,6 +17,7 @@ export type StoryInput = {
   coverImagePath: string;
   seoTitle: string;
   seoDescription: string;
+  featured: boolean;
   /** Solo lo respeta el servidor si quien guarda es staff. */
   status?: PhotoStatus;
 };
@@ -60,6 +61,7 @@ export async function saveStory(input: StoryInput): Promise<Result> {
     cover_image_path: input.coverImagePath,
     seo_title: input.seoTitle.trim(),
     seo_description: input.seoDescription.trim(),
+    featured: input.featured,
   };
 
   if (input.id) {

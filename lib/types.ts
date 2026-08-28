@@ -106,6 +106,8 @@ export type StoryRow = {
   seo_title: string;
   seo_description: string;
   status: PhotoStatus;
+  /** Portada de revista en el listado, en vez de una entrada más del índice. */
+  featured: boolean;
   author_id: string | null;
   reviewed_by: string | null;
   reviewed_at: string | null;
@@ -128,6 +130,7 @@ export type Story = {
   seoTitle: string;
   seoDescription: string;
   status: PhotoStatus;
+  featured: boolean;
   authorId: string | null;
   authorName: string;
   reviewNote: string | null;

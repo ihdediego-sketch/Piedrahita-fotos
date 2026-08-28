@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { ChevronDown, Images } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import MarkdownEditor from "@/components/MarkdownEditor";
@@ -20,6 +21,7 @@ export type Draft = {
   coverImagePath: string;
   seoTitle: string;
   seoDescription: string;
+  featured: boolean;
   status: PhotoStatus;
 };
 
@@ -30,6 +32,7 @@ export const emptyDraft = (): Draft => ({
   coverImagePath: "",
   seoTitle: "",
   seoDescription: "",
+  featured: false,
   status: "pending",
 });
 
@@ -41,6 +44,7 @@ export const toDraft = (s: Story): Draft => ({
   coverImagePath: s.coverImagePath,
   seoTitle: s.seoTitle,
   seoDescription: s.seoDescription,
+  featured: s.featured,
   status: s.status,
 });
 
@@ -279,7 +283,21 @@ export default function StoryFields({
         />
       </div>
 
-      <div className="story-editor-side">{coverField}</div>
+      <div className="story-editor-side">
+        {coverField}
+        <label className="check-field">
+          <Checkbox
+            checked={draft.featured}
+            onCheckedChange={(checked) => set("featured", checked === true)}
+            className="data-checked:bg-[#5c3317] data-checked:border-[#5c3317]"
+          />
+          <span>Destacada</span>
+          <span className="hint">
+            Se muestra el doble de grande que las demás en el listado de
+            Historias, como portada.
+          </span>
+        </label>
+      </div>
 
       <details className="story-editor-more" open={detailsOpen}>
         <summary>

@@ -2237,15 +2237,26 @@
   flex-direction: column;
 }
 
+/* La destacada y sus dos acompañantes, en fila: la destacada ocupa el
+   doble de ancho (2/3) que la columna con las otras dos apiladas (1/3) —
+   la misma proporción que una portada de revista frente a sus llamadas
+   laterales. En móvil se apilan todas, destacada primero. */
+.stories-hero-row {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2.8rem;
+}
+
 .story-feature {
+  flex: 2;
+  min-width: 0;
   display: block;
   text-decoration: none;
   color: inherit;
-  margin-bottom: 2.6rem;
 }
 
 .story-feature-cover {
-  aspect-ratio: 16 / 8;
+  aspect-ratio: 4 / 3;
   background: var(--fill-placeholder);
   display: flex;
   align-items: center;
@@ -2269,19 +2280,18 @@
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
-  max-width: 44rem;
 }
 
 .story-feature-title {
   font-family: var(--font-serif);
-  font-size: clamp(1.7rem, 3.4vw, 2.5rem);
+  font-size: clamp(1.5rem, 2.6vw, 2.1rem);
   font-weight: 500;
   line-height: 1.2;
   color: var(--ink);
 }
 
 .story-feature-excerpt {
-  font-size: 1.02rem;
+  font-size: 1rem;
   line-height: 1.6;
   color: var(--ink-soft);
 }
@@ -2289,6 +2299,64 @@
 .story-feature-meta {
   font-size: 0.7rem;
   letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* La columna al lado de la destacada: dos historias pequeñas apiladas,
+   mismo alto total que la destacada, sin extracto (no hay sitio). */
+.stories-hero-side {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+}
+
+.story-tile {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.story-tile-cover {
+  aspect-ratio: 16 / 10;
+  background: var(--fill-placeholder);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-bottom: 0.7rem;
+}
+
+.story-tile-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.story-tile-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.story-tile-title {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--ink);
+  transition: color 0.15s ease;
+}
+
+.story-tile:hover .story-tile-title {
+  color: var(--brown);
+}
+
+.story-tile-meta {
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--ink-soft);
 }
@@ -2380,10 +2448,22 @@
   color: var(--ink-soft);
 }
 
-@media (max-width: 640px) {
-  .story-feature-cover {
-    aspect-ratio: 4 / 3;
+@media (max-width: 760px) {
+  .stories-hero-row {
+    flex-direction: column;
+    gap: 2rem;
   }
+  .stories-hero-side {
+    flex-direction: row;
+    gap: 1rem;
+  }
+  .stories-hero-side .story-tile {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 640px) {
   .story-row {
     gap: 1rem;
   }

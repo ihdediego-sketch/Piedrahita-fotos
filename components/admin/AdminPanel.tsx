@@ -396,7 +396,14 @@ export default function AdminPanel({
           {s.coverImage && <img src={s.coverImage} alt="" />}
         </span>
         <span className="photo-row-text">
-          <span className="photo-row-title">{s.title || "(sin título)"}</span>
+          <span className="photo-row-title">
+            {s.featured && (
+              <span className="row-featured" title="Destacada">
+                <Circle aria-hidden size={7} fill="currentColor" stroke="none" />
+              </span>
+            )}
+            {s.title || "(sin título)"}
+          </span>
           <span className="photo-row-meta">
             <span className={`status-dot ${s.status}`} aria-hidden />
             {s.authorName && (

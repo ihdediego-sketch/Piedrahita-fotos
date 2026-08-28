@@ -25,6 +25,7 @@ export function toStory(
     seoTitle: row.seo_title,
     seoDescription: row.seo_description,
     status: row.status,
+    featured: row.featured,
     authorId: row.author_id,
     authorName: row.author?.display_name ?? "",
     reviewNote: row.review_note,
