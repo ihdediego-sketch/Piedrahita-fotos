@@ -422,7 +422,7 @@ export default function AdminPanel({
       <aside className="admin-sidebar">
         <div className="admin-sidebar-head">
           <Link href="/" className="back-link">
-            <ArrowLeft aria-hidden size={14} strokeWidth={1.8} /> Volver al mapa
+            <ArrowLeft aria-hidden size={14} strokeWidth={1.8} /> Volver
           </Link>
           <h1>Admin</h1>
         </div>

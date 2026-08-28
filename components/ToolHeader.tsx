@@ -25,7 +25,7 @@ export default function ToolHeader({
   scrolled = false,
   savedLabel,
   backHref = "/",
-  backLabel = "Volver al mapa",
+  backLabel = "Volver",
   children,
 }: {
   title: ReactNode;
@@ -55,7 +55,7 @@ export default function ToolHeader({
           </span>
         )}
         {children}
-        <UserMenu viewer={viewer} dropdown={false} />
+        <UserMenu viewer={viewer} />
       </div>
     </header>
   );

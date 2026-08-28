@@ -14,15 +14,12 @@ export default function AppHeader({
   viewer,
   overlay = false,
   scrolled = false,
-  fullMenu = false,
 }: {
   site: SiteContent;
   viewer: Viewer;
   overlay?: boolean;
   /** Línea bajo la cabecera al scrollear el contenido de debajo. */
   scrolled?: boolean;
-  /** Menú de sesión completo (enviar fotos + desplegable): solo en la portada. */
-  fullMenu?: boolean;
 }) {
   return (
     <header
@@ -38,7 +35,7 @@ export default function AppHeader({
       <SiteNav />
 
       <div className="app-header-actions">
-        <UserMenu viewer={viewer} dropdown={fullMenu} showSubmit={fullMenu} />
+        <UserMenu viewer={viewer} />
       </div>
     </header>
   );

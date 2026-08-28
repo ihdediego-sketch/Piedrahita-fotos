@@ -640,7 +640,7 @@ export default function MapView({
         )}
       </div>
 
-      <AppHeader site={site} viewer={viewer} overlay fullMenu />
+      <AppHeader site={site} viewer={viewer} overlay />
 
       <Timeline
         from={range[0]}
