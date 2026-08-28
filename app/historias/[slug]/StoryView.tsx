@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
-import { Heart } from "lucide-react";
+import { ArrowLeft, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import AppHeader from "@/components/AppHeader";
@@ -120,6 +120,10 @@ export default function StoryView({
 
       <div className="pane" onScroll={onScroll}>
         <article className="story-page">
+          <Link href="/historias" className="back-link story-back">
+            <ArrowLeft aria-hidden size={14} strokeWidth={1.8} /> Volver a Historias
+          </Link>
+
           {story.coverImage && (
             <div className="story-cover">
               {/* eslint-disable-next-line @next/next/no-img-element */}

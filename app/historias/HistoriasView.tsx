@@ -34,7 +34,12 @@ export default function HistoriasView({
     <main className="admin historias-page">
       <AppHeader site={site} viewer={viewer} scrolled={scrolled} />
 
-      <div className="pane pane-centered" onScroll={onScroll}>
+      {/* El scroll vive en `.pane`, a todo el ancho, para que la barra quede
+          pegada al borde de la ventana; `.pane-centered` es solo el ancho de
+          lectura, centrado dentro. Si van en el mismo elemento la barra sale
+          pegada al texto en vez de al borde. */}
+      <div className="pane" onScroll={onScroll}>
+        <div className="pane-centered">
         {stories.length === 0 ? (
           <p className="photos-empty">Todavía no hay historias publicadas.</p>
         ) : (
@@ -84,6 +89,7 @@ export default function HistoriasView({
             )}
           </div>
         )}
+        </div>
       </div>
     </main>
   );

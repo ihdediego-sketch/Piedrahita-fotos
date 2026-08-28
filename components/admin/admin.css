@@ -2224,8 +2224,12 @@
    un índice de sumario —filas separadas por una regla, sin caja ni
    sombra—, no como un muro de miniaturas idénticas. */
 
+/* A diferencia de Fotografías/Mapas en el admin, aquí no hay pestañas al
+   lado con las que alinear el borde izquierdo: es una página de lectura
+   pública, así que la columna de texto se centra como en un periódico. */
 .historias-page .pane-centered {
   max-width: 900px;
+  margin: 0 auto;
 }
 
 .stories-editorial {
@@ -2398,6 +2402,11 @@
   width: 100%;
   margin: 0 auto;
   padding: 2rem 1.2rem 4rem;
+}
+
+.story-back {
+  display: inline-flex;
+  margin-bottom: 1.6rem;
 }
 
 .story-cover {
