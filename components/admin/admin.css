@@ -1990,6 +1990,175 @@
   white-space: nowrap;
 }
 
+/* ---------- Editor de historia: el cuerpo manda ----------
+   Título y portada quedan a la vista (el panel las necesita para
+   reconocer la historia en la lista); extracto y SEO se pliegan, porque
+   escribir es lo importante y lo demás es tarea de después. */
+
+.story-editor {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.story-editor-main {
+  flex: 1 1 480px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.story-editor-side {
+  flex: 0 0 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.story-editor-title-input {
+  font-family: var(--font-serif);
+  font-size: 1.4rem !important;
+  font-weight: 500;
+  padding: 0.3rem 0 !important;
+  border: none !important;
+  border-bottom: 1px solid var(--line) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+.story-editor-title-input:focus,
+.story-editor-title-input:focus-visible {
+  border-bottom-color: var(--ink) !important;
+  outline: none !important;
+}
+
+.markdown-editor.story-editor-body {
+  flex: 1;
+}
+
+.markdown-editor.story-editor-body .markdown-editor-area {
+  min-height: 22rem;
+}
+
+/* Extracto y SEO, plegados: un resumen discreto con la misma tipografía
+   de rótulo que el resto del panel, no un enlace destacado. */
+.story-editor-more {
+  flex-basis: 100%;
+  border-top: 1px solid var(--line);
+  padding-top: 0.9rem;
+  margin-top: 0.2rem;
+}
+
+.story-editor-more summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  list-style: none;
+}
+
+.story-editor-more summary::-webkit-details-marker {
+  display: none;
+}
+
+.story-editor-more summary svg {
+  transition: transform 0.15s ease;
+}
+
+.story-editor-more[open] summary svg {
+  transform: rotate(180deg);
+}
+
+.story-editor-more summary:hover {
+  color: var(--ink);
+}
+
+.story-editor-more-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 1rem;
+  max-width: 640px;
+}
+
+.story-editor-more-cover {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-width: 260px;
+  margin-bottom: 1.2rem;
+}
+
+/* ---------- Envío público: solo el cuerpo, todo lo demás plegado ---------- */
+
+.story-editor-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.story-editor-title-plain {
+  font-family: var(--font-serif);
+  font-size: 1.6rem !important;
+  font-weight: 500;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--ink) !important;
+}
+
+.story-editor-title-plain::placeholder {
+  color: var(--ink-soft);
+  opacity: 0.6;
+}
+
+.story-editor-title-plain:focus,
+.story-editor-title-plain:focus-visible {
+  outline: none !important;
+}
+
+.markdown-editor.story-editor-body-compact .markdown-editor-area {
+  min-height: 60vh;
+  font-size: 1.05rem;
+}
+
+.mine-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  margin-top: 0.4rem;
+}
+
+.mine-list-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.4rem 0;
+  background: none;
+  border: none;
+  text-align: left;
+  font-family: inherit;
+  font-size: 0.85rem;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.mine-list-item:hover {
+  color: var(--brown);
+}
+
 /* ---------- Listado público de historias ---------- */
 
 .stories-grid {

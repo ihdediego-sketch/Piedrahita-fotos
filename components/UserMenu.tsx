@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { User, ImagePlus, LogOut, Settings } from "lucide-react";
+import { User, ImagePlus, LogOut, PenLine, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { signOut } from "@/app/auth/actions";
 import { ROLE_LABELS, isStaff, type Viewer } from "@/lib/types";
@@ -86,6 +86,10 @@ export default function UserMenu({ viewer }: { viewer: Viewer }) {
             <Link href="/subir" role="menuitem" onClick={() => setOpen(false)}>
               <ImagePlus aria-hidden size={17} strokeWidth={1.7} />
               Enviar fotos
+            </Link>
+            <Link href="/historias/nueva" role="menuitem" onClick={() => setOpen(false)}>
+              <PenLine aria-hidden size={17} strokeWidth={1.7} />
+              Escribir historia
             </Link>
             <Link href="/perfil" role="menuitem" onClick={() => setOpen(false)}>
               <User aria-hidden size={17} strokeWidth={1.7} />
