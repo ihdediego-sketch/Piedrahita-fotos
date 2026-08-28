@@ -451,7 +451,7 @@ export default function AdminPanel({
         </nav>
 
         <div className="admin-sidebar-foot">
-          <UserMenu viewer={viewer} showSubmit={false} />
+          <UserMenu viewer={viewer} />
         </div>
       </aside>
 

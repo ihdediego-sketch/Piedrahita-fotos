@@ -7,13 +7,7 @@ import { Button } from "@/components/ui/button";
 import { signOut } from "@/app/auth/actions";
 import { ROLE_LABELS, isStaff, type Viewer } from "@/lib/types";
 
-export default function UserMenu({
-  viewer,
-  showSubmit = true,
-}: {
-  viewer: Viewer;
-  showSubmit?: boolean;
-}) {
+export default function UserMenu({ viewer }: { viewer: Viewer }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -45,18 +39,6 @@ export default function UserMenu({
 
   return (
     <div className="user-menu" ref={ref}>
-      {showSubmit && (
-        <Button
-          variant="ghost"
-          className="user-chip-submit"
-          render={<Link href="/subir" title="Enviar una fotografía" />}
-          nativeButton={false}
-        >
-          <ImagePlus aria-hidden size={17} strokeWidth={1.8} />
-          Enviar fotos
-        </Button>
-      )}
-
       <Button
         variant="ghost"
         className="user-chip user-chip-avatar"
