@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { ChevronDown, Images } from "lucide-react";
+import { ChevronDown, Images, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -265,6 +265,17 @@ export default function StoryFields({
 
   return (
     <div className="story-editor">
+      <label
+        className={`story-featured-toggle${draft.featured ? " on" : ""}`}
+      >
+        <Checkbox
+          checked={draft.featured}
+          onCheckedChange={(checked) => set("featured", checked === true)}
+        />
+        <Star aria-hidden size={15} strokeWidth={1.8} fill={draft.featured ? "currentColor" : "none"} />
+        Destacada
+      </label>
+
       <div className="story-editor-main">
         <Input
           type="text"
@@ -283,21 +294,7 @@ export default function StoryFields({
         />
       </div>
 
-      <div className="story-editor-side">
-        {coverField}
-        <label className="check-field">
-          <Checkbox
-            checked={draft.featured}
-            onCheckedChange={(checked) => set("featured", checked === true)}
-            className="data-checked:bg-[#5c3317] data-checked:border-[#5c3317]"
-          />
-          <span>Destacada</span>
-          <span className="hint">
-            Se muestra el doble de grande que las demás en el listado de
-            Historias, como portada.
-          </span>
-        </label>
-      </div>
+      <div className="story-editor-side">{coverField}</div>
 
       <details className="story-editor-more" open={detailsOpen}>
         <summary>

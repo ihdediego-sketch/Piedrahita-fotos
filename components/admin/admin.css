@@ -2002,6 +2002,46 @@
   align-items: flex-start;
 }
 
+/* Arriba del todo y con peso propio: marcar una historia como destacada
+   decide si abre el listado a toda plana, así que no puede ser un
+   checkbox más entre el resto de campos. */
+.story-featured-toggle {
+  flex-basis: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: fit-content;
+  height: auto;
+  margin-bottom: 0 !important;
+  padding: 0.55rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.story-featured-toggle [data-slot="checkbox"] {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+}
+
+.story-featured-toggle:hover {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+
+.story-featured-toggle.on {
+  color: #5c3317;
+  border-color: #5c3317;
+  background: color-mix(in srgb, #5c3317 8%, transparent);
+}
+
 .story-editor-main {
   flex: 1 1 480px;
   min-width: 0;
