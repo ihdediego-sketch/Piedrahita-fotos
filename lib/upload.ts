@@ -58,6 +58,38 @@ async function uploadImage(
   return { path };
 }
 
+/**
+ * Dimensiones en píxeles de una imagen local, leídas en el navegador antes de
+ * guardar. Devuelve null si el navegador no sabe decodificar el formato: la
+ * foto se guarda igualmente y el mosaico asume 4:3 hasta un backfill.
+ */
+export async function readImageDimensions(
+  file: File
+): Promise<{ width: number; height: number } | null> {
+  try {
+    const bitmap = await createImageBitmap(file);
+    const size = { width: bitmap.width, height: bitmap.height };
+    bitmap.close();
+    return size;
+  } catch {
+    // Fallback con <img> para formatos que createImageBitmap no soporta
+    // en algunos navegadores (p. ej. AVIF en Safari antiguos).
+    return new Promise((resolve) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        resolve({ width: img.naturalWidth, height: img.naturalHeight });
+        URL.revokeObjectURL(url);
+      };
+      img.onerror = () => {
+        resolve(null);
+        URL.revokeObjectURL(url);
+      };
+      img.src = url;
+    });
+  }
+}
+
 export const uploadPhotoImage = (file: File) =>
   uploadImage(file, PHOTO_BUCKET, ACCEPTED_IMAGE_TYPES, MAX_PHOTO_BYTES);
 

@@ -87,41 +87,131 @@ body {
 
 /* ---------- Cabecera ---------- */
 
-.site-header {
+/* Título, menú de secciones y sesión, en una sola fila: el mismo componente
+   (AppHeader) en todas las páginas públicas, para que el alto no cambie al
+   navegar entre ellas. Solo cambia si flota sobre el mapa (`.app-header-overlay`,
+   la portada) o vive en el flujo normal de la página (el resto). */
+.app-header {
+  position: relative;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 1.5rem;
+  padding-block: 1.4rem;
+}
+
+/* En el flujo normal (p. ej. /fotos) la cabecera vive dentro de un
+   contenedor que ya trae su propio margen lateral y superior (.admin,
+   padding: 2rem 2.5rem 0): el lado y el arriba los pone ese contenedor, no
+   la cabecera, para no sumar los dos y desplazar el título de más. Aquí
+   solo se añade el aire de abajo y la línea que aparece al scrollear. */
+.app-header:not(.app-header-overlay) {
+  flex-shrink: 0;
+  padding-top: 0;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s ease;
+}
+
+.app-header.scrolled {
+  border-bottom-color: var(--ink);
+}
+
+/* ToolHeader (/perfil, /subir) no lleva nada en la columna central del
+   grid: a diferencia de AppHeader, cuyas tres columnas (título/nav/sesión)
+   siguen cabiendo holgadas en pantallas medianas, aquí el título y las
+   acciones (Cancelar, Guardar…) pueden no caber en una sola fila. Pasa a
+   flex y deja que las dos partes envuelvan como en cualquier cabecera de
+   formulario, en vez de forzar el grid de tres columnas. */
+@media (max-width: 900px) {
+  .tool-header {
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: 0.6rem;
+  }
+}
+
+/* En la portada flota sobre el mapa, sin contenedor propio: aquí sí pone
+   su propio margen lateral. El velo claro va solo en el fondo de la fila
+   (la niebla del mapa, .map-fog, ya blanquea el resto); pointer-events:none
+   deja pasar los clics al mapa donde no hay nada encima, y se reactiva en
+   cada elemento clicable. */
+.app-header-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 20;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  padding: 1.5rem 2rem 2.5rem;
+  padding-inline: 2rem;
   pointer-events: none;
-  /* Velo claro sobre el título. Ahora la niebla del mapa (.map-fog) ya
-     blanquea el borde superior, así que este solo remata el contraste bajo
-     el texto en vez de cargar con todo. */
   background: linear-gradient(
     to bottom,
-    rgba(250, 250, 250, 0.72),
+    rgba(250, 250, 250, 0.85),
     rgba(250, 250, 250, 0)
   );
 }
 
-.site-header h1 {
+.app-header-overlay .app-header-title,
+.app-header-overlay .site-nav,
+.app-header-overlay .app-header-actions {
+  pointer-events: auto;
+}
+
+.app-header-title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+/* Doble clase a propósito: en /fotos esta cabecera convive con admin.css
+   (`.admin h1` tiene la misma especificidad de una clase + un tipo), y sin
+   esto el orden de import decidiría el tamaño del título. */
+.app-header .app-header-title h1 {
   font-family: var(--font-serif), Georgia, serif;
-  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-size: clamp(1.4rem, 2.4vw, 1.9rem);
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.site-header .subtitle {
-  font-size: 0.7rem;
-  letter-spacing: 0.28em;
+.app-header-title .subtitle {
+  font-size: 0.65rem;
+  letter-spacing: 0.26em;
   text-transform: uppercase;
   color: var(--ink-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-header-actions {
+  grid-column: 3;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.8rem;
+}
+
+/* Dentro de la cabecera el menú de sesión viaja con el resto de la fila
+   (grid), no fijo por su cuenta: en las demás páginas (perfil, admin…)
+   sigue flotando solo, ver .user-menu más abajo. `relative`, no `static`:
+   el desplegable de sesión es absolute respecto al propio .user-menu
+   (top/right en .user-dropdown) — con static perdería esa referencia y
+   saldría pegado a la esquina de la cabecera entera, no bajo el avatar. */
+.app-header-actions .user-menu {
+  position: relative;
+  top: auto;
+  right: auto;
+}
+
+/* La cabecera va antes que el resto en el DOM: sin esto el desplegable
+   quedaría por debajo del contenido de la página (mosaico, formulario…). */
+.app-header-actions .user-dropdown {
+  z-index: 30;
 }
 
 /* ---------- Mapa ---------- */
@@ -1031,10 +1121,12 @@ div.map-root,
 }
 
 @media (max-width: 640px) {
-  .site-header {
-    padding: 1rem 1.2rem;
-    flex-direction: column;
-    gap: 0.3rem;
+  .app-header {
+    padding-block: 1rem;
+    column-gap: 0.8rem;
+  }
+  .app-header-overlay {
+    padding-inline: 1.2rem;
   }
   .timeline {
     bottom: 1rem;
@@ -1177,8 +1269,9 @@ div.map-root,
   }
 }
 /* ---------- Sesión: menú de usuario ----------
-   Va en su propio bloque fijo y no dentro de .site-header porque esa cabecera
-   tiene pointer-events:none para no robarle los clics al mapa. */
+   Fijo por defecto: lo usan páginas sin AppHeader (perfil, admin…), que no
+   tienen columna de acciones propia. Dentro de AppHeader viaja con el resto
+   de la fila (ver .app-header-actions .user-menu). */
 
 .user-menu {
   position: fixed;
@@ -1697,4 +1790,186 @@ div.map-root,
 .not-found-link:hover {
   background: var(--paper);
   color: var(--ink);
+}
+
+/* ============ Menú de secciones (Mapa / Fotos) ============ */
+
+.site-nav {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.site-nav-links {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.8rem;
+}
+
+.site-nav-link {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  padding: 0.3rem 0.05rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+/* Línea bajo el texto: crece desde el centro al pasar el ratón, se queda
+   fija en la sección activa. Nada de caja ni fondo: es un menú de lectura,
+   no una barra de botones. */
+.site-nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.3rem;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transition: transform 0.2s ease;
+}
+
+.site-nav-link:hover {
+  color: var(--ink);
+}
+
+.site-nav-link:hover::after {
+  transform: scaleX(1);
+}
+
+.site-nav-link[aria-current="page"] {
+  color: var(--ink);
+}
+
+.site-nav-link[aria-current="page"]::after {
+  transform: scaleX(1);
+}
+
+/* La hamburguesa solo existe en pantallas chicas */
+.site-nav-burger {
+  display: none;
+}
+
+/* El desplegable de móvil sí es una caja (es un menú que se abre, no una
+   fila de pestañas), pero por dentro los enlaces siguen siendo texto plano. */
+.site-nav-panel {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 140px;
+  padding: 0.4rem;
+  border: 1px solid var(--ink);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  z-index: 30;
+  box-shadow: 0 6px 18px rgba(17, 17, 17, 0.12);
+}
+
+.site-nav-panel .site-nav-link {
+  padding: 0.55rem 0.6rem;
+}
+
+.site-nav-panel .site-nav-link::after {
+  left: 0.6rem;
+  right: 0.6rem;
+  bottom: 0.25rem;
+}
+
+@media (max-width: 640px) {
+  .site-nav-links {
+    display: none;
+  }
+  .site-nav-burger {
+    display: inline-flex;
+    padding: 0.45rem 0.6rem;
+  }
+}
+
+/* ============ Página /fotos: mosaico de todas las fotografías ============ */
+
+/* Buscador, orden y contador, en su propia fila bajo la cabecera */
+.photos-toolbar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 1.2rem;
+}
+
+.photos-search {
+  width: 230px;
+  background: transparent;
+}
+
+/* En el admin las opciones del segmentado se reparten el ancho a partes
+   iguales y recortan; aquí cada una ocupa lo que pide su etiqueta. */
+.photos-toolbar .filter-row {
+  margin: 0;
+}
+
+.photos-toolbar .filter-chip {
+  flex: 0 0 auto;
+  padding: 0.4rem 0.9rem;
+}
+
+.photos-count {
+  margin-left: auto;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+/* Como el resto de miniaturas del sitio: en blanco y negro en reposo y a
+   color al pasar el ratón (en móvil se ven en color al abrirlas). */
+.photos-pane img {
+  filter: grayscale(1);
+  transition: filter 0.25s ease;
+}
+
+.photos-pane .react-photo-album--button {
+  padding: 0;
+  display: block;
+  width: 100%;
+}
+
+.photos-pane .react-photo-album--button:hover img,
+.photos-pane .react-photo-album--button:focus-visible img {
+  filter: none;
+}
+
+/* El navegador se salta el layout y el pintado de las filas fuera de
+   pantalla: el scroll sigue fluido aunque haya miles de fotos. */
+.photos-pane .react-photo-album--track {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 220px;
+}
+
+.photos-empty {
+  padding: 3rem 0;
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 900px) {
+  .photos-toolbar {
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+  .photos-search {
+    flex: 1;
+    min-width: 150px;
+  }
+  .photos-count {
+    display: none;
+  }
 }

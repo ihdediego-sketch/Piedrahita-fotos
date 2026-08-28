@@ -10,7 +10,7 @@ import { toCornerTuple } from "@/lib/historical-maps";
 import { plaza, edificios } from "@/lib/lugares";
 import Timeline from "./Timeline";
 import PhotoModal from "./PhotoModal";
-import UserMenu from "./UserMenu";
+import AppHeader from "./AppHeader";
 import { TIMELINE_MIN, TIMELINE_MAX } from "@/lib/photos";
 
 /** Tope de mapas históricos activos a la vez, para no encender de golpe
@@ -640,12 +640,7 @@ export default function MapView({
         )}
       </div>
 
-      <header className="site-header">
-        <h1>{site.title}</h1>
-        <span className="subtitle">{site.subtitle}</span>
-      </header>
-
-      <UserMenu viewer={viewer} />
+      <AppHeader site={site} viewer={viewer} overlay fullMenu />
 
       <Timeline
         from={range[0]}

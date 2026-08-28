@@ -1,12 +1,9 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft,
   Camera,
-  Check,
   ChevronDown,
   EyeOff,
   Heart,
@@ -21,7 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import UserMenu from "@/components/UserMenu";
+import ToolHeader from "@/components/ToolHeader";
 import { saveProfile } from "@/app/actions/profile";
 import { setPhotoStatus } from "@/app/actions/photos";
 import { setCommentStatus, toggleLike } from "@/app/actions/social";
@@ -149,46 +146,35 @@ export default function ProfileForm({
 
   return (
     <main className="admin profile-page">
-      <header className="admin-header">
-        <div className="admin-header-left">
-          <Link href="/" className="back-link">
-            <ArrowLeft aria-hidden size={14} strokeWidth={1.8} /> Volver al mapa
-          </Link>
-          <h1>Tu perfil</h1>
-        </div>
-        <div className="admin-actions">
-          {saved && !editing && (
-            <span className="saved-note">
-              Guardado
-              <Check aria-hidden size={13} strokeWidth={2} />
-            </span>
-          )}
-          {/* Fuera de edición no hay nada que guardar ni que deshacer: los
-              botones solo asoman mientras el formulario está abierto. */}
-          {editing && (
-            <>
-              <Button
-                variant="ghost"
-                className="discard-btn"
-                onClick={cancelEdit}
-                disabled={pending || uploading}
-              >
-                Cancelar
-              </Button>
-              <Button
-                variant="ghost"
-                className="form-action save-btn"
-                onClick={submit}
-                disabled={pending || uploading || !dirty}
-              >
-                <Save aria-hidden size={15} strokeWidth={1.8} />
-                {pending ? "Guardando…" : "Guardar cambios"}
-              </Button>
-            </>
-          )}
-          <UserMenu viewer={viewer} dropdown={false} />
-        </div>
-      </header>
+      <ToolHeader
+        title="Tu perfil"
+        viewer={viewer}
+        savedLabel={saved && !editing ? "Guardado" : null}
+      >
+        {/* Fuera de edición no hay nada que guardar ni que deshacer: los
+            botones solo asoman mientras el formulario está abierto. */}
+        {editing && (
+          <>
+            <Button
+              variant="ghost"
+              className="discard-btn"
+              onClick={cancelEdit}
+              disabled={pending || uploading}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="ghost"
+              className="form-action save-btn"
+              onClick={submit}
+              disabled={pending || uploading || !dirty}
+            >
+              <Save aria-hidden size={15} strokeWidth={1.8} />
+              {pending ? "Guardando…" : "Guardar cambios"}
+            </Button>
+          </>
+        )}
+      </ToolHeader>
 
       <div className="pane">
         {error && <p className="admin-error">{error}</p>}

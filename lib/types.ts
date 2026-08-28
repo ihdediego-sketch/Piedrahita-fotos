@@ -24,6 +24,10 @@ export type PhotoRow = {
   date_label: string;
   /** Ruta dentro del bucket `photos`, no una URL. */
   image_path: string;
+  /** Ancho en píxeles del original. Null en fotos antiguas sin backfill. */
+  width: number | null;
+  /** Alto en píxeles del original. Null en fotos antiguas sin backfill. */
+  height: number | null;
   featured: boolean;
   status: PhotoStatus;
   author_id: string | null;
@@ -51,6 +55,10 @@ export type Photo = {
   /** URL pública de la imagen en Storage. */
   image: string;
   imagePath: string;
+  /** Ancho en píxeles del original. Null en fotos antiguas sin backfill. */
+  width: number | null;
+  /** Alto en píxeles del original. Null en fotos antiguas sin backfill. */
+  height: number | null;
   /** Hito relevante: se marca en el mapa con un punto marrón más grande. */
   featured: boolean;
   status: PhotoStatus;

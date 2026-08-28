@@ -61,6 +61,8 @@ export function toPhoto(
     dateLabel: row.date_label,
     image: imageUrl(row.image_path),
     imagePath: row.image_path,
+    width: row.width,
+    height: row.height,
     featured: row.featured,
     status: row.status,
     authorId: row.author_id,

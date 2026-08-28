@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import MarkdownEditor from "@/components/MarkdownEditor";
 import { ACCEPTED_IMAGE_EXT, defaultDateLabel, imageUrl } from "@/lib/photos";
-import { uploadPhotoImage } from "@/lib/upload";
+import { readImageDimensions, uploadPhotoImage } from "@/lib/upload";
 import type { Photo, PhotoStatus } from "@/lib/types";
 
 const PIEDRAHITA: [number, number] = [-5.3238, 40.4619];
@@ -41,6 +41,8 @@ export type Draft = {
   yearTo: number;
   dateLabel: string;
   imagePath: string;
+  width: number | null;
+  height: number | null;
   featured: boolean;
   status: PhotoStatus;
 };
@@ -54,6 +56,8 @@ export const emptyDraft = (): Draft => ({
   yearTo: 1900,
   dateLabel: "",
   imagePath: "",
+  width: null,
+  height: null,
   featured: false,
   status: "pending",
 });
@@ -68,6 +72,8 @@ export const toDraft = (p: Photo): Draft => ({
   yearTo: p.yearTo,
   dateLabel: p.dateLabel,
   imagePath: p.imagePath,
+  width: p.width,
+  height: p.height,
   featured: p.featured,
   status: p.status,
 });
@@ -219,7 +225,12 @@ export default function PhotoFields({
     const local = URL.createObjectURL(file);
     setPreview(local);
 
-    const res = await uploadPhotoImage(file);
+    // Las dimensiones se leen en paralelo a la subida: el mosaico de /fotos
+    // las necesita para maquetar sin cargar la imagen.
+    const [res, size] = await Promise.all([
+      uploadPhotoImage(file),
+      readImageDimensions(file),
+    ]);
     setUploading(false);
     if ("error" in res) {
       setUploadError(res.error);
@@ -227,7 +238,12 @@ export default function PhotoFields({
       URL.revokeObjectURL(local);
       return;
     }
-    onChange({ ...draft, imagePath: res.path });
+    onChange({
+      ...draft,
+      imagePath: res.path,
+      width: size?.width ?? null,
+      height: size?.height ?? null,
+    });
     setPreview(null);
     URL.revokeObjectURL(local);
   };

@@ -42,26 +42,10 @@
 
 /* ---------- Cabecera y pestañas (fijas) ---------- */
 
-.admin-header {
-  flex-shrink: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  align-items: center;
-  gap: 1.5rem;
-  padding-bottom: 1.4rem;
-  /* La línea solo aparece cuando algo scrollea por debajo (ver .scrolled):
-     en reposo, separa con aire en vez de con un trazo. */
-  border-bottom: 1px solid transparent;
-  transition: border-color 0.15s ease;
-}
-
-.admin-header.scrolled {
-  border-bottom-color: var(--ink);
-}
-
-.admin-header-left {
-  flex-shrink: 0;
-}
+/* La cabecera de /perfil y /subir (ToolHeader) usa el mismo grid que la del
+   mapa y /fotos (AppHeader): `.app-header` / `.app-header-actions` en
+   globals.css, no una versión propia aquí. Lo que sigue siendo de este
+   archivo es lo específico del panel: pestañas, `.saved-note`, etc. */
 
 .saved-note {
   display: inline-flex;
@@ -1087,10 +1071,6 @@
   .admin {
     padding: 1.5rem 1.2rem 0;
   }
-  .admin-header {
-    display: flex;
-    flex-wrap: wrap;
-  }
   /* La barra lateral pasa a cabecera horizontal: el mapa de esquinas y las
      listas maestro-detalle ya necesitan todo el ancho en pantallas chicas. */
   .admin.admin-with-sidebar {
@@ -1409,7 +1389,7 @@
 
 /* El perfil es una página de lectura corta, no un panel: se centra y se le
    pone tope de ancho para que las líneas no crucen toda la pantalla. */
-.profile-page > .admin-header,
+.profile-page > .app-header,
 .profile-page > .pane {
   width: 100%;
   max-width: 1180px;
@@ -1898,18 +1878,15 @@
   max-width: 62ch;
 }
 
-/* El menú de usuario es fijo sobre el mapa; dentro del panel vive en la
-   cabecera, así que aquí fluye con el resto de acciones. */
-.admin-header .user-menu,
+/* El menú de usuario es fijo sobre el mapa; en /perfil y /subir vive en
+   ToolHeader (ver .app-header-actions .user-menu en globals.css). Aquí solo
+   queda el reposicionamiento dentro de la topbar del panel de admin. */
 .admin-topbar .user-menu {
   position: relative;
   top: auto;
   right: auto;
 }
 
-/* La cabecera va antes que el resto en el DOM: sin esto el desplegable queda
-   por debajo de la lista de fotografías. */
-.admin-header .user-dropdown,
 .admin-topbar .user-dropdown {
   z-index: 30;
 }

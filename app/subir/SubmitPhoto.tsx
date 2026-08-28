@@ -3,10 +3,9 @@
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PhotoFields, { emptyDraft, toDraft, type Draft } from "@/components/PhotoEditor";
-import UserMenu from "@/components/UserMenu";
+import ToolHeader from "@/components/ToolHeader";
 import { savePhoto } from "@/app/actions/photos";
 import { useScrollBorder } from "@/lib/useScrollBorder";
 import type { Photo, SiteContent, Viewer } from "@/lib/types";
@@ -68,36 +67,28 @@ export default function SubmitPhoto({
 
   return (
     <main className="admin">
-      <header className={`admin-header${scrolled ? " scrolled" : ""}`}>
-        <div className="admin-header-left">
-          <Link href="/" className="back-link">
-            <ArrowLeft aria-hidden size={14} strokeWidth={1.8} /> Volver al mapa
-          </Link>
-          <h1>{editing ? "Editar tu fotografía" : site.submitTitle}</h1>
-        </div>
-        <div className="admin-actions">
-          {done && (
-            <span className="saved-note">
-              {canPublish ? "Publicada" : "Enviada, pendiente de revisión"}
-              <Check aria-hidden size={13} strokeWidth={2} />
-            </span>
-          )}
-          {editing && (
-            <Button variant="ghost" onClick={reset}>
-              Cancelar
-            </Button>
-          )}
-          <Button
-            variant="ghost"
-            className="save-btn"
-            onClick={submit}
-            disabled={pending}
-          >
-            {pending ? "Guardando…" : editing ? "Guardar cambios" : "Enviar"}
+      <ToolHeader
+        title={editing ? "Editar tu fotografía" : site.submitTitle}
+        viewer={viewer}
+        scrolled={scrolled}
+        savedLabel={
+          done ? (canPublish ? "Publicada" : "Enviada, pendiente de revisión") : null
+        }
+      >
+        {editing && (
+          <Button variant="ghost" onClick={reset}>
+            Cancelar
           </Button>
-          <UserMenu viewer={viewer} dropdown={false} />
-        </div>
-      </header>
+        )}
+        <Button
+          variant="ghost"
+          className="save-btn"
+          onClick={submit}
+          disabled={pending}
+        >
+          {pending ? "Guardando…" : editing ? "Guardar cambios" : "Enviar"}
+        </Button>
+      </ToolHeader>
 
       {!canPublish && site.submitIntro && (
         <p className="hint pane-note">{site.submitIntro}</p>

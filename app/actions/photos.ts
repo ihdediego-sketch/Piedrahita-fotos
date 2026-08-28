@@ -19,6 +19,9 @@ export type PhotoInput = {
   yearTo: number;
   dateLabel: string;
   imagePath: string;
+  /** Dimensiones en píxeles del original, leídas en el navegador al subir. */
+  width?: number | null;
+  height?: number | null;
   featured: boolean;
   /** Solo lo respeta el servidor si quien guarda es staff. */
   status?: PhotoStatus;
@@ -76,6 +79,8 @@ export async function savePhoto(input: PhotoInput): Promise<Result> {
     year_to: input.yearTo,
     date_label: input.dateLabel.trim() || defaultDateLabel(input),
     image_path: input.imagePath,
+    width: input.width ?? null,
+    height: input.height ?? null,
     featured: input.featured,
   };
 
